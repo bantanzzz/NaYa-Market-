@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NaYa Market</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="text-2xl md:text-3xl font-extrabold text-green-700 tracking-tight">NaYa Market</div>
+    <a href="vendor.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition">Become a Vendor</a>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="flex flex-col items-center justify-center text-center py-12 px-4 bg-gradient-to-br from-green-100 to-green-50">
+    <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-green-800 mb-4 leading-tight">Discover Amazing Vendors Near You</h1>
+    <p class="text-lg md:text-xl text-green-700 max-w-2xl mb-6">Explore a variety of businesses and connect directly with trusted vendors in your area. Shop local, support dreams!</p>
+    <a href="#vendors" class="inline-block bg-green-600 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-700 transition">Browse Vendors</a>
+  </section>
+
+  <!-- Category Filters -->
+  <div class="flex flex-wrap justify-center gap-3 my-8 px-2" id="category-filters">
+    <button data-category="Fashion" class="category-btn flex items-center gap-2 bg-pink-50 border border-pink-400 text-pink-700 px-4 py-2 rounded-full font-medium shadow-sm hover:bg-pink-400 hover:text-white transition focus:ring-2 focus:ring-pink-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4-4-4-4m16 8l-4-4 4-4M12 20V4"/></svg>
+      Fashion
+    </button>
+    <button data-category="Electronics" class="category-btn flex items-center gap-2 bg-blue-50 border border-blue-400 text-blue-700 px-4 py-2 rounded-full font-medium shadow-sm hover:bg-blue-400 hover:text-white transition focus:ring-2 focus:ring-blue-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="7" y="4" width="10" height="16" rx="2"/><path d="M11 5h2"/></svg>
+      Electronics
+    </button>
+    <button data-category="Food" class="category-btn flex items-center gap-2 bg-yellow-50 border border-yellow-400 text-yellow-700 px-4 py-2 rounded-full font-medium shadow-sm hover:bg-yellow-400 hover:text-white transition focus:ring-2 focus:ring-yellow-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 17h16M4 13h16M4 9h16M4 5h16"/></svg>
+      Food
+    </button>
+    <button data-category="Services" class="category-btn flex items-center gap-2 bg-green-50 border border-green-400 text-green-700 px-4 py-2 rounded-full font-medium shadow-sm hover:bg-green-400 hover:text-white transition focus:ring-2 focus:ring-green-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 21h6l-.75-4M4 4h16v2a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+      Services
+    </button>
+    <button data-category="All" class="category-btn flex items-center gap-2 bg-gray-100 border border-gray-300 text-gray-700 px-4 py-2 rounded-full font-medium shadow-sm hover:bg-gray-300 hover:text-white transition focus:ring-2 focus:ring-gray-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+      All
+    </button>
+  </div>
+
+  <!-- Vendor Grid -->
+  <div id="vendors" class="flex-1 w-full max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 pb-12 px-4">
+    <!-- Fashion Vendors -->
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Chic Styles</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Freetown</p>
+      <a href="https://wa.me/2348012345671" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Urban Vogue</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Bo</p>
+      <a href="https://wa.me/2348012345672" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Classic Couture</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Kenema</p>
+      <a href="https://wa.me/2348012345673" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1445205170230-053b83016050?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Trendy Threads</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Makeni</p>
+      <a href="https://wa.me/2348012345674" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Royal Attire</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Koidu</p>
+      <a href="https://wa.me/2348012345675" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551489186-cf8726f514f8?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Glamour House</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Kailahun</p>
+      <a href="https://wa.me/2348012345676" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Elite Fashions</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Kabala</p>
+      <a href="https://wa.me/2348012345677" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Naija Trends</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Port Loko</p>
+      <a href="https://wa.me/2348012345678" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Style Avenue</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Bonthe</p>
+      <a href="https://wa.me/2348012345679" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Fashion">
+      <img src="https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=150&h=150&fit=crop&crop=center" alt="Fashion Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-pink-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-pink-700">Luxe Looks</h2>
+      <p class="text-gray-500 mb-1 text-sm">Fashion <span class="mx-1">•</span> Moyamba</p>
+      <a href="https://wa.me/2348012345680" target="_blank" class="mt-3 bg-pink-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-pink-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <!-- Electronics Vendors -->
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">ElectroMart</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Freetown</p>
+      <a href="https://wa.me/2348098765431" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Tech Hub</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Bo</p>
+      <a href="https://wa.me/2348098765432" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Gadget Galaxy</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Kenema</p>
+      <a href="https://wa.me/2348098765433" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Digital Den</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Makeni</p>
+      <a href="https://wa.me/2348098765434" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Gadget Guru</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Koidu</p>
+      <a href="https://wa.me/2348098765435" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Tech Zone</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Kailahun</p>
+      <a href="https://wa.me/2348098765436" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Gadget Haven</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Kabala</p>
+      <a href="https://wa.me/2348098765437" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Digital Depot</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Port Loko</p>
+      <a href="https://wa.me/2348098765438" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Gadget Garage</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Bonthe</p>
+      <a href="https://wa.me/2348098765439" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Electronics">
+      <img src="https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&h=150&fit=crop&crop=center" alt="Electronics Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-blue-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-blue-700">Tech Store</h2>
+      <p class="text-gray-500 mb-1 text-sm">Electronics <span class="mx-1">•</span> Moyamba</p>
+      <a href="https://wa.me/2348098765440" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <!-- Food Vendors -->
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Tasty Bites</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Freetown</p>
+      <a href="https://wa.me/2348076543211" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Delicious Diner</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Bo</p>
+      <a href="https://wa.me/2348076543212" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Savory Snacks</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Kenema</p>
+      <a href="https://wa.me/2348076543213" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Fiesta</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Makeni</p>
+      <a href="https://wa.me/2348076543214" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Fun</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Koidu</p>
+      <a href="https://wa.me/2348076543215" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Feast</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Kailahun</p>
+      <a href="https://wa.me/2348076543216" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Frenzy</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Kabala</p>
+      <a href="https://wa.me/2348076543217" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Fun</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Port Loko</p>
+      <a href="https://wa.me/2348076543218" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Feast</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Bonthe</p>
+      <a href="https://wa.me/2348076543219" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Food">
+      <img src="https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=150&h=150&fit=crop&crop=center" alt="Food Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-yellow-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-yellow-700">Foodie Frenzy</h2>
+      <p class="text-gray-500 mb-1 text-sm">Food <span class="mx-1">•</span> Moyamba</p>
+      <a href="https://wa.me/2348076543220" target="_blank" class="mt-3 bg-yellow-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-yellow-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <!-- Services Vendors -->
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">QuickFix Services</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Freetown</p>
+      <a href="https://wa.me/2348065432101" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Tech Support</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Bo</p>
+      <a href="https://wa.me/2348065432102" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Repair Pro</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Kenema</p>
+      <a href="https://wa.me/2348065432103" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Tech Help</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Makeni</p>
+      <a href="https://wa.me/2348065432104" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Repair Hub</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Koidu</p>
+      <a href="https://wa.me/2348065432105" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Tech Solutions</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Kailahun</p>
+      <a href="https://wa.me/2348065432106" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Repair Pro</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Kabala</p>
+      <a href="https://wa.me/2348065432107" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Tech Help</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Port Loko</p>
+      <a href="https://wa.me/2348065432108" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Repair Hub</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Bonthe</p>
+      <a href="https://wa.me/2348065432109" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+    <div class="vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition" data-category="Services">
+      <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Services Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+      <h2 class="text-xl font-bold mb-1 text-green-700">Tech Solutions</h2>
+      <p class="text-gray-500 mb-1 text-sm">Services <span class="mx-1">•</span> Moyamba</p>
+      <a href="https://wa.me/2348065432110" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+        WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <footer class="bg-white border-t mt-auto py-6 text-center text-gray-400 text-sm">
+    &copy; 2024 NaYa Market. All rights reserved.
+  </footer>
+
+  <script>
+    // Category filter logic
+    const categoryButtons = document.querySelectorAll('.category-btn');
+    const vendorCards = document.querySelectorAll('.vendor-card');
+    let allVendorCards = [...vendorCards]; // Copy existing cards
+
+    // Load vendor products from localStorage
+    function loadVendorProducts() {
+      const savedProducts = localStorage.getItem('vendorProducts');
+      if (savedProducts) {
+        const vendorProducts = JSON.parse(savedProducts);
+        const vendorsContainer = document.getElementById('vendors');
+        
+        vendorProducts.forEach((product, index) => {
+          const card = document.createElement('div');
+          card.className = 'vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition';
+          card.setAttribute('data-category', product.category);
+          
+          // Determine color based on category
+          let colorClass = 'green';
+          if (product.category === 'Fashion') colorClass = 'pink';
+          else if (product.category === 'Electronics') colorClass = 'blue';
+          else if (product.category === 'Food') colorClass = 'yellow';
+          
+          card.innerHTML = `
+            <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-${colorClass}-100 shadow">
+            <h2 class="text-xl font-bold mb-1 text-${colorClass}-700">${product.name}</h2>
+            <p class="text-gray-500 mb-1 text-sm">${product.category} <span class="mx-1">•</span> ${product.location}</p>
+            <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-${colorClass}-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-${colorClass}-600 transition shadow">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+              WhatsApp
+            </a>
+          `;
+          
+          vendorsContainer.appendChild(card);
+          allVendorCards.push(card);
+        });
+      }
+    }
+
+    categoryButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const selected = btn.getAttribute('data-category');
+        categoryButtons.forEach(b => b.classList.remove('ring', 'ring-2', 'ring-offset-2'));
+        btn.classList.add('ring', 'ring-2', 'ring-offset-2');
+        allVendorCards.forEach(card => {
+          if (selected === 'All' || card.getAttribute('data-category') === selected) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+    
+    // Set default to All
+    document.querySelector('.category-btn[data-category="All"]').click();
+    
+    // Load vendor products
+    loadVendorProducts();
+  </script>
+</body>
+</html> 
