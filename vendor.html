@@ -10,7 +10,10 @@
   <!-- Navbar -->
   <nav class="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
     <div class="text-2xl md:text-3xl font-extrabold text-green-700 tracking-tight">NaYa Market</div>
-    <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition">Home</a>
+    <div class="flex gap-2">
+      <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition">Home</a>
+      <button id="logoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-red-700 transition">Logout</button>
+    </div>
   </nav>
 
   <main class="flex-1 w-full max-w-3xl mx-auto py-10 px-4">
@@ -69,9 +72,10 @@
     &copy; 2024 NaYa Market. All rights reserved.
   </footer>
 
-  <script>
+  <script type="module">
     // 🔸 Firebase SDKs
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
@@ -86,8 +90,17 @@
     };
 
     const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    
+    // 🔸 Check if user is authenticated
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // User is not authenticated, redirect to login page
+        window.location.href = 'login.html';
+      }
+    });
 
     const addProductForm = document.getElementById('addProductForm');
     const productList = document.getElementById('productList');
@@ -194,11 +207,55 @@
           imagePreview.classList.add('hidden');
           alert('Product added successfully! It will appear on the home page.');
         } else {
-          alert('Failed to add product. Please try again.');
+          // Fallback to localStorage if Firebase fails
+          // In this case, we'll store the data URL directly in localStorage
+          // This is not ideal for production, but it's a fallback for when Firebase is not available
+          let vendorProducts = JSON.parse(localStorage.getItem('vendorProducts') || '[]');
+          vendorProducts.push(newProduct);
+          localStorage.setItem('vendorProducts', JSON.stringify(vendorProducts));
+          
+          // Add to local products array for immediate display
+          products.push(newProduct);
+          renderProducts();
+          addProductForm.reset();
+          imagePreview.classList.add('hidden');
+          alert('Product saved locally. Firebase is not available.');
         }
       };
       reader.readAsDataURL(imageFile);
     };
+
+    // Save product to Firebase Firestore and Storage
+    async function saveProductToFirebase(product) {
+      try {
+        // Upload image to Firebase Storage
+        const imageRef = ref(storage, 'product-images/' + Date.now() + '-' + product.name);
+        const response = await fetch(product.image);
+        const blob = await response.blob();
+        await uploadBytes(imageRef, blob);
+        
+        // Get download URL for the image
+        const imageUrl = await getDownloadURL(imageRef);
+        
+        // Save product data to Firestore
+        const docRef = await addDoc(collection(db, "vendors"), {
+          name: product.name,
+          price: product.price,
+          category: product.category,
+          location: product.location,
+          whatsapp: product.whatsapp,
+          description: product.description,
+          image: imageUrl, // Store the image URL, not the data URL
+          createdAt: serverTimestamp()
+        });
+        
+        console.log("Product saved with ID: ", docRef.id);
+        return true;
+      } catch (error) {
+        console.error("Error saving product to Firebase: ", error);
+        return false;
+      }
+    }
 
     window.deleteProduct = async function(idx) {
       const product = products[idx];
@@ -218,6 +275,17 @@
     // Initialize
     loadProducts();
     renderProducts();
+    
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        // Sign-out successful
+        window.location.href = 'login.html';
+      }).catch((error) => {
+        // An error happened
+        console.error('Logout error:', error);
+      });
+    });
   </script>
 </body>
 </html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vendor Login - NaYa Market</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <!-- Navbar -->
+  <nav class="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
+    <div class="text-2xl md:text-3xl font-extrabold text-green-700 tracking-tight">NaYa Market</div>
+    <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition">Home</a>
+  </nav>
+
+  <main class="flex-1 w-full max-w-md mx-auto py-10 px-4">
+    <div class="bg-white rounded-xl shadow p-6">
+      <h1 class="text-2xl font-bold text-green-700 mb-6 text-center">Vendor Portal</h1>
+      
+      <!-- Login Form -->
+      <div id="loginForm">
+        <h2 class="text-xl font-bold text-green-700 mb-4 text-center">Login to Your Account</h2>
+        <form id="loginFormElement" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Email</label>
+            <input type="email" id="loginEmail" class="border rounded px-3 py-2" required>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Password</label>
+            <input type="password" id="loginPassword" class="border rounded px-3 py-2" required>
+          </div>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Login</button>
+        </form>
+        <p class="mt-4 text-center">
+          Don't have an account? 
+          <button id="showSignup" class="text-green-600 font-medium hover:underline">Sign up here</button>
+        </p>
+      </div>
+      
+      <!-- Signup Form -->
+      <div id="signupForm" class="hidden">
+        <h2 class="text-xl font-bold text-green-700 mb-4 text-center">Create an Account</h2>
+        <form id="signupFormElement" class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Full Name</label>
+            <input type="text" id="signupName" class="border rounded px-3 py-2" required>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Email</label>
+            <input type="email" id="signupEmail" class="border rounded px-3 py-2" required>
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Password</label>
+            <input type="password" id="signupPassword" class="border rounded px-3 py-2" required minlength="6">
+          </div>
+          <div class="flex flex-col gap-2">
+            <label class="font-medium">Confirm Password</label>
+            <input type="password" id="signupConfirmPassword" class="border rounded px-3 py-2" required>
+          </div>
+          <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700 transition">Sign Up</button>
+        </form>
+        <p class="mt-4 text-center">
+          Already have an account? 
+          <button id="showLogin" class="text-green-600 font-medium hover:underline">Login here</button>
+        </p>
+      </div>
+      
+      <!-- Error Message -->
+      <div id="errorMessage" class="mt-4 p-3 bg-red-100 text-red-700 rounded-lg hidden"></div>
+      
+      <!-- Success Message -->
+      <div id="successMessage" class="mt-4 p-3 bg-green-100 text-green-700 rounded-lg hidden"></div>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t mt-auto py-6 text-center text-gray-400 text-sm">
+    &copy; 2024 NaYa Market. All rights reserved.
+  </footer>
+
+  <script type="module">
+    // 🔸 Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // 🔸 Replace with your own Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXfcM8ClwOJE8Zv6u-N-RuLCxNnjwXuus",
+      authDomain: "naya-market-60190.firebaseapp.com",
+      projectId: "naya-market-60190",
+      storageBucket: "naya-market-60190.firebasestorage.app",
+      messagingSenderId: "591341489607",
+      appId: "1:591341489607:web:f7b75b28d85d7481869de2"
+    };
+
+    // 🔸 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    // DOM Elements
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const loginFormElement = document.getElementById('loginFormElement');
+    const signupFormElement = document.getElementById('signupFormElement');
+    const showSignupBtn = document.getElementById('showSignup');
+    const showLoginBtn = document.getElementById('showLogin');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    
+    // Toggle between login and signup forms
+    showSignupBtn.addEventListener('click', () => {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+    });
+    
+    showLoginBtn.addEventListener('click', () => {
+      signupForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+    });
+    
+    // Handle login form submission
+    loginFormElement.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Login successful
+        successMessage.textContent = 'Login successful! Redirecting to vendor dashboard...';
+        successMessage.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        
+        // Redirect to vendor dashboard after a short delay
+        setTimeout(() => {
+          window.location.href = 'vendor.html';
+        }, 1500);
+      } catch (error) {
+        // Handle login errors
+        errorMessage.textContent = getAuthErrorMessage(error.code);
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+      }
+    });
+    
+    // Handle signup form submission
+    signupFormElement.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      
+      // Check if passwords match
+      if (password !== confirmPassword) {
+        errorMessage.textContent = 'Passwords do not match';
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+        return;
+      }
+      
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Signup successful
+        successMessage.textContent = 'Account created successfully! Redirecting to vendor dashboard...';
+        successMessage.classList.remove('hidden');
+        errorMessage.classList.add('hidden');
+        
+        // Redirect to vendor dashboard after a short delay
+        setTimeout(() => {
+          window.location.href = 'vendor.html';
+        }, 1500);
+      } catch (error) {
+        // Handle signup errors
+        errorMessage.textContent = getAuthErrorMessage(error.code);
+        errorMessage.classList.remove('hidden');
+        successMessage.classList.add('hidden');
+      }
+    });
+    
+    // Helper function to get user-friendly error messages
+    function getAuthErrorMessage(errorCode) {
+      switch (errorCode) {
+        case 'auth/email-already-in-use':
+          return 'This email is already registered. Please login instead.';
+        case 'auth/invalid-email':
+          return 'Please enter a valid email address.';
+        case 'auth/weak-password':
+          return 'Password should be at least 6 characters.';
+        case 'auth/user-not-found':
+          return 'No account found with this email. Please check your email or sign up.';
+        case 'auth/wrong-password':
+          return 'Incorrect password. Please try again.';
+        default:
+          return 'An error occurred. Please try again.';
+      }
+    }
+  </script>
+</body>
+</html>
