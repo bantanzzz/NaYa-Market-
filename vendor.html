@@ -70,6 +70,25 @@
   </footer>
 
   <script>
+    // 🔸 Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+    // 🔸 Replace with your own Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXfcM8ClwOJE8Zv6u-N-RuLCxNnjwXuus",
+      authDomain: "naya-market-60190.firebaseapp.com",
+      projectId: "naya-market-60190",
+      storageBucket: "naya-market-60190.firebasestorage.app",
+      messagingSenderId: "591341489607",
+      appId: "1:591341489607:web:f7b75b28d85d7481869de2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+
     const addProductForm = document.getElementById('addProductForm');
     const productList = document.getElementById('productList');
     const noProductsMsg = document.getElementById('noProductsMsg');
@@ -78,17 +97,24 @@
     const previewImg = document.getElementById('previewImg');
     let products = [];
 
-    // Load existing products from localStorage
-    function loadProducts() {
-      const savedProducts = localStorage.getItem('vendorProducts');
-      if (savedProducts) {
-        products = JSON.parse(savedProducts);
+    // Load existing products from Firebase
+    async function loadProducts() {
+      try {
+        const querySnapshot = await getDocs(collection(db, "vendors"));
+        products = [];
+        querySnapshot.forEach((doc) => {
+          const product = doc.data();
+          product.id = doc.id; // Store document ID for deletion
+          products.push(product);
+        });
+      } catch (error) {
+        console.error("Error loading products: ", error);
+        // Fallback to localStorage if Firebase fails
+        const savedProducts = localStorage.getItem('vendorProducts');
+        if (savedProducts) {
+          products = JSON.parse(savedProducts);
+        }
       }
-    }
-
-    // Save products to localStorage
-    function saveProducts() {
-      localStorage.setItem('vendorProducts', JSON.stringify(products));
     }
 
     // Handle image preview
@@ -138,7 +164,7 @@
       });
     }
 
-    addProductForm.onsubmit = function(e) {
+    addProductForm.onsubmit = async function(e) {
       e.preventDefault();
       const name = document.getElementById('productName').value.trim();
       const price = document.getElementById('productPrice').value.trim();
@@ -152,24 +178,40 @@
         return;
       }
 
+      const description = document.getElementById('productDescription').value.trim();
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         const imageDataUrl = e.target.result;
-        const description = document.getElementById('productDescription').value.trim();
         const newProduct = { name, price, category, location, whatsapp, description, image: imageDataUrl };
-        products.push(newProduct);
-        saveProducts();
-        renderProducts();
-        addProductForm.reset();
-        imagePreview.classList.add('hidden');
-        alert('Product added successfully! It will appear on the home page.');
+        
+        // Save to Firebase
+        const saved = await saveProductToFirebase(newProduct);
+        if (saved) {
+          // Add to local products array for immediate display
+          products.push(newProduct);
+          renderProducts();
+          addProductForm.reset();
+          imagePreview.classList.add('hidden');
+          alert('Product added successfully! It will appear on the home page.');
+        } else {
+          alert('Failed to add product. Please try again.');
+        }
       };
       reader.readAsDataURL(imageFile);
     };
 
-    window.deleteProduct = function(idx) {
+    window.deleteProduct = async function(idx) {
+      const product = products[idx];
+      if (product.id) {
+        // Delete from Firebase
+        try {
+          await deleteDoc(doc(db, "vendors", product.id));
+        } catch (error) {
+          console.error("Error deleting product from Firebase: ", error);
+          alert("Failed to delete product from server. It will be removed locally only.");
+        }
+      }
       products.splice(idx, 1);
-      saveProducts();
       renderProducts();
     };
 
