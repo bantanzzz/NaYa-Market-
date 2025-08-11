@@ -1,6 +1,5 @@
 // 🔸 Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
@@ -17,17 +16,8 @@ const firebaseConfig = {
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
   const db = getFirestore(app);
   const storage = getStorage(app);
-
-  // 🔸 Check if user is authenticated
-  onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      // User is not authenticated, redirect to login page
-      window.location.href = 'login.html';
-    }
-  });
 
   const addProductForm = document.getElementById('addProductForm');
   const productList = document.getElementById('productList');
@@ -202,15 +192,4 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize
   loadProducts();
   renderProducts();
-
-  // Logout functionality
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    auth.signOut().then(() => {
-      // Sign-out successful
-      window.location.href = 'login.html';
-    }).catch((error) => {
-      // An error happened
-      console.error('Logout error:', error);
-    });
-  });
 });
