@@ -32,12 +32,20 @@
         </select>
       </div>
       <div class="flex flex-col gap-2">
+        <label class="font-medium">Price (Le)</label>
+        <input type="number" id="productPrice" class="border rounded px-3 py-2" required>
+      </div>
+      <div class="flex flex-col gap-2">
         <label class="font-medium">Location</label>
         <input type="text" id="productLocation" class="border rounded px-3 py-2" required>
       </div>
       <div class="flex flex-col gap-2">
         <label class="font-medium">WhatsApp Number (e.g. 23276767676)</label>
         <input type="text" id="productWhatsApp" class="border rounded px-3 py-2" required pattern="[0-9]{9}">
+      </div>
+      <div class="flex flex-col gap-2">
+        <label class="font-medium">Product Description</label>
+        <textarea id="productDescription" class="border rounded px-3 py-2" rows="3"></textarea>
       </div>
       <div class="flex flex-col gap-2">
         <label class="font-medium">Product Image</label>
@@ -62,52 +70,6 @@
   </footer>
 
   <script>
-    
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  const firebaseConfig = {
-  apiKey: "AIzaSyDXfcM8ClwOJE8Zv6u-N-RuLCxNnjwXuus",
-  authDomain: "naya-market-60190.firebaseapp.com",
-  projectId: "naya-market-60190",
-  storageBucket: "naya-market-60190.firebasestorage.app",
-  messagingSenderId: "591341489607",
-  appId: "1:591341489607:web:f7b75b28d85d7481869de2"
-};
-
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  const productGrid = document.getElementById("productGrid");
-
-  async function loadProducts() {
-    const q = query(collection(db, "vendors"), orderBy("createdAt", "desc"));
-    const snapshot = await getDocs(q);
-
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-
-      const card = document.createElement("div");
-      card.className = "bg-white p-4 rounded shadow";
-
-      card.innerHTML = `
-        <img src="${data.imageUrl}" alt="${data.productName}" class="w-full h-48 object-cover rounded mb-2">
-        <h2 class="text-xl font-bold">${data.productName}</h2>
-        <p class="text-gray-600">Vendor: ${data.vendorName}</p>
-        <p class="text-green-700 font-semibold">Le ${data.price}</p>
-      `;
-
-      productGrid.appendChild(card);
-    });
-  }
-
-  loadProducts();
-
-
-
-
-
     const addProductForm = document.getElementById('addProductForm');
     const productList = document.getElementById('productList');
     const noProductsMsg = document.getElementById('noProductsMsg');
@@ -153,12 +115,21 @@
       noProductsMsg.style.display = 'none';
       products.forEach((product, idx) => {
         const card = document.createElement('div');
-        card.className = 'bg-gray-50 rounded-lg shadow p-4 flex flex-col items-center relative';
+        card.className = 'vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition';
         card.innerHTML = `
-          <img src="${product.image}" alt="Product" class="w-24 h-24 object-cover rounded-full mb-3 border-4 border-green-100 shadow">
-          <h3 class="text-lg font-bold mb-1 text-green-800">${product.name}</h3>
+          <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow">
+          <h2 class="text-xl font-bold mb-1 text-green-700">${product.name}</h2>
           <p class="text-gray-500 mb-1 text-sm">${product.category} <span class="mx-1">•</span> ${product.location}</p>
-          <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-2 bg-green-500 text-white px-3 py-1 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">WhatsApp</a>
+          <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
+          <p class="text-gray-600 text-sm mb-2">${product.description || ''}</p>
+          <a href="https://wa.me/${product.whatsapp}?text=I'm%20interested%20in%20buying%20${product.name}%20priced%20at%20Le%20${product.price}" target="_blank" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
+            Buy Now
+          </a>
+          <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
+            WhatsApp
+          </a>
           <button onclick="deleteProduct(${idx})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition" title="Delete">
             <svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>
           </button>
@@ -170,6 +141,7 @@
     addProductForm.onsubmit = function(e) {
       e.preventDefault();
       const name = document.getElementById('productName').value.trim();
+      const price = document.getElementById('productPrice').value.trim();
       const category = document.getElementById('productCategory').value;
       const location = document.getElementById('productLocation').value.trim();
       const whatsapp = document.getElementById('productWhatsApp').value.trim();
@@ -183,7 +155,8 @@
       const reader = new FileReader();
       reader.onload = function(e) {
         const imageDataUrl = e.target.result;
-        const newProduct = { name, category, location, whatsapp, image: imageDataUrl };
+        const description = document.getElementById('productDescription').value.trim();
+        const newProduct = { name, price, category, location, whatsapp, description, image: imageDataUrl };
         products.push(newProduct);
         saveProducts();
         renderProducts();
@@ -205,4 +178,4 @@
     renderProducts();
   </script>
 </body>
-</html> 
+</html>
