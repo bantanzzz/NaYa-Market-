@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Test - NaYa Market</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+    .success { background-color: #d4edda; border-color: #c3e6cb; }
+    .error { background-color: #f8d7da; border-color: #f5c6cb; }
+    .info { background-color: #d1ecf1; border-color: #bee5eb; }
+    button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    #log { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 20px; max-height: 400px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1>Firebase Connection Test</h1>
+  
+  <div class="test-section info">
+    <h3>Test Firebase Connection</h3>
+    <p>This page will test your Firebase configuration and permissions.</p>
+    <button onclick="testFirebaseConnection()">Test Connection</button>
+    <button onclick="testFirestoreWrite()">Test Firestore Write</button>
+    <button onclick="testStorageUpload()">Test Storage Upload</button>
+    <button onclick="clearLog()">Clear Log</button>
+  </div>
+
+  <div id="log"></div>
+
+  <script type="module">
+    // Firebase SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDXfcM8ClwOJE8Zv6u-N-RuLCxNnjwXuus",
+      authDomain: "naya-market-60190.firebaseapp.com",
+      projectId: "naya-market-60190",
+      storageBucket: "naya-market-60190.firebasestorage.app",
+      messagingSenderId: "591341489607",
+      appId: "1:591341489607:web:f7b75b28d85d7481869de2"
+    };
+
+    let app, db;
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const timestamp = new Date().toLocaleTimeString();
+      const logEntry = document.createElement('div');
+      logEntry.className = type;
+      logEntry.innerHTML = `<strong>[${timestamp}]</strong> ${message}`;
+      logDiv.appendChild(logEntry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+      console.log(message);
+    }
+
+    window.testFirebaseConnection = async function() {
+      try {
+        log('Testing Firebase connection...', 'info');
+        
+        // Initialize Firebase
+        app = initializeApp(firebaseConfig);
+        log('✅ Firebase app initialized successfully', 'success');
+        
+        // Test Firestore
+        db = getFirestore(app);
+        log('✅ Firestore initialized successfully', 'success');
+        
+        // Storage not available on free plan
+        log('ℹ️ Storage not available on free plan - using Firestore only', 'info');
+        
+        // Test reading from Firestore
+        try {
+          const querySnapshot = await getDocs(collection(db, "vendors"));
+          log(`✅ Firestore read successful. Found ${querySnapshot.size} documents`, 'success');
+        } catch (error) {
+          log(`❌ Firestore read failed: ${error.message}`, 'error');
+        }
+        
+      } catch (error) {
+        log(`❌ Firebase initialization failed: ${error.message}`, 'error');
+      }
+    };
+
+    window.testFirestoreWrite = async function() {
+      if (!db) {
+        log('❌ Please test Firebase connection first', 'error');
+        return;
+      }
+      
+      try {
+        log('Testing Firestore write...', 'info');
+        
+        const testData = {
+          name: 'Test Product',
+          price: '100',
+          category: 'Test',
+          location: 'Test Location',
+          whatsapp: '123456789',
+          description: 'This is a test product',
+          image: 'https://via.placeholder.com/150',
+          createdAt: new Date()
+        };
+        
+        const docRef = await addDoc(collection(db, "vendors"), testData);
+        log(`✅ Firestore write successful! Document ID: ${docRef.id}`, 'success');
+        
+        // Clean up - delete the test document
+        // Note: This requires delete permission
+        log('Test document created successfully. You may need to delete it manually from Firebase console.', 'info');
+        
+      } catch (error) {
+        log(`❌ Firestore write failed: ${error.message}`, 'error');
+        log(`Error code: ${error.code}`, 'error');
+        
+        if (error.code === 'permission-denied') {
+          log('🔒 This is a permissions issue. Check your Firestore security rules.', 'error');
+        }
+      }
+    };
+
+    window.testStorageUpload = async function() {
+      log('ℹ️ Storage upload test disabled - not available on free plan', 'info');
+      log('💡 Upgrade to Blaze plan to enable Firebase Storage', 'info');
+    };
+
+    window.clearLog = function() {
+      document.getElementById('log').innerHTML = '';
+    };
+
+    // Auto-test connection on page load
+    window.addEventListener('load', () => {
+      log('Page loaded. Click "Test Connection" to begin testing.', 'info');
+    });
+  </script>
+</body>
+</html>

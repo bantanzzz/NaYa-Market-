@@ -1,7 +1,6 @@
 // 🔸 Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 // 🔸 Replace with your own Firebase config
 const firebaseConfig = {
@@ -15,10 +14,24 @@ const firebaseConfig = {
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const storage = getStorage(app);
-
+  console.log('DOM loaded, initializing Firebase...');
+  
+  let app, db;
+  
+  try {
+    app = initializeApp(firebaseConfig);
+    console.log('Firebase app initialized successfully');
+    
+    db = getFirestore(app);
+    console.log('Firestore initialized');
+    
+    console.log('Storage disabled - using free plan');
+  } catch (error) {
+    console.error('Error initializing Firebase:', error);
+    alert('Failed to initialize Firebase. Please check your configuration.');
+    return;
+  }
+  
   const addProductForm = document.getElementById('addProductForm');
   const productList = document.getElementById('productList');
   const noProductsMsg = document.getElementById('noProductsMsg');
@@ -96,12 +109,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   addProductForm.onsubmit = async function(e) {
     e.preventDefault();
+    console.log('Form submitted, processing...');
+    
     const name = document.getElementById('productName').value.trim();
     const price = document.getElementById('productPrice').value.trim();
     const category = document.getElementById('productCategory').value;
     const location = document.getElementById('productLocation').value.trim();
     const whatsapp = document.getElementById('productWhatsApp').value.trim();
     const imageFile = document.getElementById('productImage').files[0];
+    
+    console.log('Form data:', { name, price, category, location, whatsapp, imageFile: imageFile ? 'selected' : 'none' });
     
     if (!imageFile) {
       alert('Please select an image');
@@ -111,12 +128,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const description = document.getElementById('productDescription').value.trim();
     const reader = new FileReader();
     reader.onload = async function(e) {
+      console.log('Image loaded, saving to Firebase...');
       const imageDataUrl = e.target.result;
       const newProduct = { name, price, category, location, whatsapp, description, image: imageDataUrl };
       
       // Save to Firebase
       const saved = await saveProductToFirebase(newProduct);
       if (saved) {
+        console.log('Product saved to Firebase successfully');
         // Add to local products array for immediate display
         products.push(newProduct);
         renderProducts();
@@ -124,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imagePreview.classList.add('hidden');
         alert('Product added successfully! It will appear on the home page.');
       } else {
+        console.log('Firebase save failed, falling back to localStorage');
         // Fallback to localStorage if Firebase fails
         // In this case, we'll store the data URL directly in localStorage
         // This is not ideal for production, but it's a fallback for when Firebase is not available
@@ -142,19 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(imageFile);
   };
 
-  // Save product to Firebase Firestore and Storage
+  // Save product to Firebase Firestore (without Storage for free plan)
   async function saveProductToFirebase(product) {
     try {
-      // Upload image to Firebase Storage
-      const imageRef = ref(storage, 'product-images/' + Date.now() + '-' + product.name);
-      const response = await fetch(product.image);
-      const blob = await response.blob();
-      await uploadBytes(imageRef, blob);
+      console.log('Starting Firebase save process...');
       
-      // Get download URL for the image
-      const imageUrl = await getDownloadURL(imageRef);
+      // For free plan, we'll store the image as a data URL directly in Firestore
+      // Note: This has size limitations but works for free tier
+      console.log('Saving product data to Firestore (free plan mode)...');
       
-      // Save product data to Firestore
       const docRef = await addDoc(collection(db, "vendors"), {
         name: product.name,
         price: product.price,
@@ -162,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
         location: product.location,
         whatsapp: product.whatsapp,
         description: product.description,
-        image: imageUrl, // Store the image URL, not the data URL
+        image: product.image, // Store the data URL directly
         createdAt: serverTimestamp()
       });
       
@@ -170,6 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return true;
     } catch (error) {
       console.error("Error saving product to Firebase: ", error);
+      console.error("Error details:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
       return false;
     }
   }
