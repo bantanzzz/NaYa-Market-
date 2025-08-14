@@ -1,6 +1,8 @@
 // 🔸 Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // 🔸 Replace with your own Firebase config
 const firebaseConfig = {
@@ -15,7 +17,7 @@ const firebaseConfig = {
 };
 
 // 🔸 Initialize Firebase globally
-let app, db;
+let app, db, storage, auth;
 
 try {
   app = initializeApp(firebaseConfig);
@@ -24,7 +26,12 @@ try {
   db = getFirestore(app);
   console.log('Firestore initialized');
   
-  console.log('Storage disabled - using free plan');
+  storage = getStorage(app);
+  console.log('Firebase Storage initialized - Blaze plan active!');
+  
+  auth = getAuth(app);
+  console.log('Firebase Auth initialized');
+  
 } catch (error) {
   console.error('Error initializing Firebase:', error);
   alert('Failed to initialize Firebase. Please check your configuration.');
@@ -33,44 +40,147 @@ try {
 // 🔸 Performance optimizations
 let products = [];
 let isLoading = false;
+let currentUser = null;
 
-// 🔸 Optimized image compression function
-function compressImage(file, maxWidth = 400, quality = 0.8) {
-  return new Promise((resolve) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+// 🔸 UI Elements
+let authSection, vendorDashboard, userEmail, logoutBtn;
+
+// 🔸 Authentication Functions
+async function signUp(email, password, fullName) {
+  try {
+    console.log('Creating new user account...');
     
-    img.onload = () => {
-      // Calculate new dimensions
-      let { width, height } = img;
-      if (width > maxWidth) {
-        height = (height * maxWidth) / width;
-        width = maxWidth;
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-      
-      // Draw and compress
-      ctx.drawImage(img, 0, 0, width, height);
-      const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
-      resolve(compressedDataUrl);
-    };
+    // Create user with email and password
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
     
-    img.src = URL.createObjectURL(file);
-  });
+    // Update user profile with full name
+    await updateProfile(user, {
+      displayName: fullName
+    });
+    
+    console.log('User account created successfully:', user.uid);
+    return { success: true, user };
+    
+  } catch (error) {
+    console.error('Error creating user account:', error);
+    let errorMessage = 'Failed to create account.';
+    
+    switch (error.code) {
+      case 'auth/email-already-in-use':
+        errorMessage = 'This email is already registered. Please login instead.';
+        break;
+      case 'auth/weak-password':
+        errorMessage = 'Password should be at least 6 characters long.';
+        break;
+      case 'auth/invalid-email':
+        errorMessage = 'Please enter a valid email address.';
+        break;
+    }
+    
+    return { success: false, error: errorMessage };
+  }
 }
 
-// 🔸 Save product to Firebase Firestore (without Storage for free plan)
+async function signIn(email, password) {
+  try {
+    console.log('Signing in user...');
+    
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+    
+    console.log('User signed in successfully:', user.uid);
+    return { success: true, user };
+    
+  } catch (error) {
+    console.error('Error signing in:', error);
+    let errorMessage = 'Failed to sign in.';
+    
+    switch (error.code) {
+      case 'auth/user-not-found':
+        errorMessage = 'No account found with this email. Please sign up first.';
+        break;
+      case 'auth/wrong-password':
+        errorMessage = 'Incorrect password. Please try again.';
+        break;
+      case 'auth/invalid-email':
+        errorMessage = 'Please enter a valid email address.';
+        break;
+    }
+    
+    return { success: false, error: errorMessage };
+  }
+}
+
+async function signOutUser() {
+  try {
+    await signOut(auth);
+    console.log('User signed out successfully');
+    return { success: true };
+  } catch (error) {
+    console.error('Error signing out:', error);
+    return { success: false, error: 'Failed to sign out.' };
+  }
+}
+
+// 🔸 UI State Management
+function showAuthSection() {
+  authSection.classList.remove('hidden');
+  vendorDashboard.classList.add('hidden');
+  userEmail.classList.add('hidden');
+  logoutBtn.classList.add('hidden');
+}
+
+function showVendorDashboard() {
+  authSection.classList.add('hidden');
+  vendorDashboard.classList.remove('hidden');
+  userEmail.classList.remove('hidden');
+  logoutBtn.classList.remove('hidden');
+}
+
+function updateUserInfo(user) {
+  if (user) {
+    userEmail.textContent = user.email || 'User';
+    if (user.displayName) {
+      userEmail.textContent = `${user.displayName} (${user.email})`;
+    }
+  } else {
+    userEmail.textContent = '';
+  }
+}
+
+// 🔸 Upload image to Firebase Storage
+async function uploadImageToStorage(file, productName) {
+  try {
+    console.log('Uploading image to Firebase Storage...');
+    
+    // Create a unique filename
+    const timestamp = Date.now();
+    const fileName = `${productName.replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.jpg`;
+    const storageRef = ref(storage, `product-images/${fileName}`);
+    
+    // Upload the file
+    const snapshot = await uploadBytes(storageRef, file);
+    console.log('Image uploaded successfully');
+    
+    // Get the download URL
+    const downloadURL = await getDownloadURL(snapshot.ref);
+    console.log('Download URL obtained:', downloadURL);
+    
+    return downloadURL;
+    
+  } catch (error) {
+    console.error('Error uploading image to Storage:', error);
+    throw error;
+  }
+}
+
+// 🔸 Save product to Firebase Firestore with Storage URLs
 async function saveProductToFirebase(product) {
   try {
-    console.log('Starting Firebase save process...');
+    console.log('Starting Firebase save process with Storage...');
     
-    // For free plan, we'll store the image as a data URL directly in Firestore
-    // Note: This has size limitations but works for free tier
-    console.log('Saving product data to Firestore (free plan mode)...');
-    
+    // Save product data to Firestore (without image data)
     const docRef = await addDoc(collection(db, "vendors"), {
       name: product.name,
       price: product.price,
@@ -78,8 +188,10 @@ async function saveProductToFirebase(product) {
       location: product.location,
       whatsapp: product.whatsapp,
       description: product.description,
-      image: product.image, // Store the data URL directly
-      createdAt: serverTimestamp()
+      image: product.image, // This is now the Storage URL
+      createdAt: serverTimestamp(),
+      vendorId: currentUser.uid, // Add vendor ID for security
+      vendorEmail: currentUser.email
     });
     
     console.log("Product saved with ID: ", docRef.id);
@@ -92,6 +204,19 @@ async function saveProductToFirebase(product) {
       stack: error.stack
     });
     return false;
+  }
+}
+
+// 🔸 Delete image from Firebase Storage
+async function deleteImageFromStorage(imageURL) {
+  try {
+    if (imageURL && imageURL.includes('firebasestorage.googleapis.com')) {
+      const imageRef = ref(storage, imageURL);
+      await deleteObject(imageRef);
+      console.log('Image deleted from Storage');
+    }
+  } catch (error) {
+    console.error('Error deleting image from Storage:', error);
   }
 }
 
@@ -146,6 +271,15 @@ function renderProducts() {
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, Firebase already initialized...');
   
+  // Get UI elements
+  authSection = document.getElementById('authSection');
+  vendorDashboard = document.getElementById('vendorDashboard');
+  userEmail = document.getElementById('userEmail');
+  logoutBtn = document.getElementById('logoutBtn');
+  
+  // Get form elements
+  const loginFormElement = document.getElementById('loginFormElement');
+  const signupFormElement = document.getElementById('signupFormElement');
   const addProductForm = document.getElementById('addProductForm');
   const productList = document.getElementById('productList');
   const noProductsMsg = document.getElementById('noProductsMsg');
@@ -153,25 +287,134 @@ document.addEventListener('DOMContentLoaded', () => {
   const imagePreview = document.getElementById('imagePreview');
   const previewImg = document.getElementById('previewImg');
   
-  console.log('Form elements found:', {
-    addProductForm: addProductForm,
-    productList: productList,
-    noProductsMsg: noProductsMsg,
-    imageInput: imageInput,
-    imagePreview: imagePreview,
-    previewImg: previewImg
+  console.log('UI elements found:', {
+    authSection, vendorDashboard, userEmail, logoutBtn,
+    loginFormElement, signupFormElement, addProductForm
   });
 
-  // 🔸 Load existing products from Firebase with pagination
+  // 🔸 Set up authentication state listener
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    
+    if (user) {
+      console.log('User is signed in:', user.email);
+      showVendorDashboard();
+      updateUserInfo(user);
+      loadProducts(); // Load user's products
+    } else {
+      console.log('User is signed out');
+      showAuthSection();
+      updateUserInfo(null);
+      products = []; // Clear products
+      renderProducts();
+    }
+  });
+
+  // 🔸 Set up logout button
+  logoutBtn.addEventListener('click', async () => {
+    const result = await signOutUser();
+    if (result.success) {
+      console.log('User logged out successfully');
+    } else {
+      alert('Error logging out: ' + result.error);
+    }
+  });
+
+  // 🔸 Set up login form
+  loginFormElement.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!email || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    const submitBtn = loginFormElement.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Signing In...';
+    submitBtn.disabled = true;
+    
+    try {
+      const result = await signIn(email, password);
+      
+      if (result.success) {
+        console.log('Login successful');
+        // Auth state listener will handle UI update
+      } else {
+        alert('Login failed: ' + result.error);
+      }
+    } catch (error) {
+      alert('Unexpected error: ' + error.message);
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+
+  // 🔸 Set up signup form
+  signupFormElement.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const fullName = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    
+    if (!fullName || !email || !password || !confirmPassword) {
+      alert('Please fill in all fields');
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+    
+    if (password.length < 6) {
+      alert('Password must be at least 6 characters long');
+      return;
+    }
+    
+    const submitBtn = signupFormElement.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Creating Account...';
+    submitBtn.disabled = true;
+    
+    try {
+      const result = await signUp(email, password, fullName);
+      
+      if (result.success) {
+        console.log('Signup successful');
+        alert('Account created successfully! You are now logged in.');
+        // Auth state listener will handle UI update
+      } else {
+        alert('Signup failed: ' + result.error);
+      }
+    } catch (error) {
+      alert('Unexpected error: ' + error.message);
+    } finally {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+
+  // 🔸 Load existing products from Firebase (only for authenticated user)
   async function loadProducts() {
-    if (isLoading) return;
+    if (isLoading || !currentUser) return;
     
     try {
       isLoading = true;
-      console.log('Loading products from Firebase...');
+      console.log('Loading products from Firebase for user:', currentUser.uid);
       
-      // Load products without limit for faster access
-      const q = query(collection(db, "vendors"), orderBy("createdAt", "desc"));
+      // Load products for the current user only
+      const q = query(
+        collection(db, "vendors"), 
+        where("vendorId", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
+      );
       const querySnapshot = await getDocs(q);
       products = [];
       querySnapshot.forEach((doc) => {
@@ -180,23 +423,20 @@ document.addEventListener('DOMContentLoaded', () => {
         products.push(product);
       });
       
-      console.log(`Loaded ${products.length} products from Firebase`);
+      console.log(`Loaded ${products.length} products from Firebase for user`);
+      renderProducts();
       
     } catch (error) {
       console.error("Error loading products: ", error);
-      // Fallback to localStorage if Firebase fails
-      const savedProducts = localStorage.getItem('vendorProducts');
-      if (savedProducts) {
-        products = JSON.parse(savedProducts);
-        console.log(`Loaded ${products.length} products from localStorage`);
-      }
+      products = [];
+      renderProducts();
     } finally {
       isLoading = false;
     }
   }
 
-  // 🔸 Handle image preview with compression
-  imageInput.addEventListener('change', async function(e) {
+  // 🔸 Handle image preview
+  imageInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {
       try {
@@ -204,26 +444,31 @@ document.addEventListener('DOMContentLoaded', () => {
         imagePreview.classList.remove('hidden');
         previewImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik00OCA1NkM1Mi40MTgzIDU2IDU2IDUyLjQxODMgNTYgNDhDNTYgNDMuNTgxNyA1Mi40MTgzIDQwIDQ4IDQwQzQzLjU4MTcgNDAgNDAgNDMuNTgxNyA0MCA0OEM0MCA1Mi40MTgzIDQzLjU4MTcgNDAgNDggNDBaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik00OCA2NEM1Ny42NzQ5IDY0IDY2IDU1LjY3NDkgNjYgNDZDNjYgMzYuMzI1MSA1Ny42NzQ5IDI4IDQ4IDI4QzM4LjMyNTEgMjggMzAgMzYuMzI1MSAzMCA0NkMzMCA1NS42NzQ5IDM4LjMyNTEgNjQgNDggNjRaIiBzdHJva2U9IiM5QjlCQTAiIHN0cm9rZS13aWR0aD0iMiIvPgo8L3N2Zz4K';
         
-        // Compress image for better performance
-        const compressedImage = await compressImage(file, 400, 0.8);
-        previewImg.src = compressedImage;
-        
-      } catch (error) {
-        console.error('Error processing image:', error);
-        // Fallback to original file
+        // Show preview of original file
         const reader = new FileReader();
         reader.onload = function(e) {
           previewImg.src = e.target.result;
         };
         reader.readAsDataURL(file);
+        
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert('Error processing image. Please try again.');
       }
     } else {
       imagePreview.classList.add('hidden');
     }
   });
 
-  addProductForm.onsubmit = async function(e) {
+  // 🔸 Set up add product form
+  addProductForm.addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    if (!currentUser) {
+      alert('Please login to add products');
+      return;
+    }
+    
     console.log('Form submitted, processing...');
     
     const name = document.getElementById('productName').value.trim();
@@ -246,12 +491,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // Show loading state
       const submitBtn = addProductForm.querySelector('button[type="submit"]');
       const originalText = submitBtn.textContent;
-      submitBtn.textContent = 'Adding Product...';
+      submitBtn.textContent = 'Uploading Image...';
       submitBtn.disabled = true;
       
-      // Compress image for better performance
-      const compressedImage = await compressImage(imageFile, 400, 0.8);
-      const newProduct = { name, price, category, location, whatsapp, description, image: compressedImage };
+      // Upload image to Firebase Storage
+      console.log('Uploading image to Firebase Storage...');
+      const imageURL = await uploadImageToStorage(imageFile, name);
+      
+      // Update button text
+      submitBtn.textContent = 'Saving Product...';
+      
+      // Create product object with Storage URL
+      const newProduct = { name, price, category, location, whatsapp, description, image: imageURL };
       
       // Save to Firebase
       const saved = await saveProductToFirebase(newProduct);
@@ -264,18 +515,8 @@ document.addEventListener('DOMContentLoaded', () => {
         imagePreview.classList.add('hidden');
         alert('Product added successfully! It will appear on the home page.');
       } else {
-        console.log('Firebase save failed, falling back to localStorage');
-        // Fallback to localStorage if Firebase fails
-        let vendorProducts = JSON.parse(localStorage.getItem('vendorProducts') || '[]');
-        vendorProducts.unshift(newProduct);
-        localStorage.setItem('vendorProducts', JSON.stringify(vendorProducts));
-        
-        // Add to local products array for immediate display
-        products.unshift(newProduct);
-        renderProducts();
-        addProductForm.reset();
-        imagePreview.classList.add('hidden');
-        alert('Product saved locally. Firebase is not available.');
+        console.log('Firebase save failed');
+        alert('Failed to save product. Please try again.');
       }
     } catch (error) {
       console.error('Error processing form:', error);
@@ -286,10 +527,26 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.textContent = 'Add Product';
       submitBtn.disabled = false;
     }
-  };
+  });
 
+  // 🔸 Set up delete product function
   window.deleteProduct = async function(idx) {
+    if (!currentUser) {
+      alert('Please login to delete products');
+      return;
+    }
+    
     const product = products[idx];
+    
+    if (!confirm(`Are you sure you want to delete "${product.name}"?`)) {
+      return;
+    }
+    
+    // Delete image from Storage first
+    if (product.image) {
+      await deleteImageFromStorage(product.image);
+    }
+    
     if (product.id) {
       // Delete from Firebase
       try {
@@ -300,12 +557,10 @@ document.addEventListener('DOMContentLoaded', () => {
         alert("Failed to delete product from server. It will be removed locally only.");
       }
     }
+    
     products.splice(idx, 1);
     renderProducts();
   };
 
-  // Initialize - Load products immediately
-  loadProducts().then(() => {
-    renderProducts();
-  });
+  console.log('Vendor page initialized with authentication');
 });

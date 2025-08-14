@@ -72,16 +72,94 @@
         transition: none;
       }
     }
+
+    /* Auth form animations */
+    .auth-form {
+      transition: all 0.3s ease-in-out;
+    }
+    
+    .auth-form.hidden {
+      opacity: 0;
+      transform: translateY(-20px);
+      pointer-events: none;
+    }
+    
+    .auth-form.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
   <!-- Navbar -->
   <nav class="bg-white shadow-md px-4 py-3 flex justify-between items-center sticky top-0 z-10">
     <div class="text-2xl md:text-3xl font-extrabold text-green-700 tracking-tight">NaYa Market</div>
-    <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition active:bg-green-800">Home</a>
+    <div class="flex items-center gap-3">
+      <span id="userEmail" class="text-sm text-gray-600 hidden"></span>
+      <button id="logoutBtn" class="bg-red-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-red-600 transition hidden">Logout</button>
+      <a href="index.html" class="bg-green-600 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-700 transition active:bg-green-800">Home</a>
+    </div>
   </nav>
 
-  <main class="flex-1 w-full max-w-3xl mx-auto py-10 px-4">
+  <!-- Authentication Forms -->
+  <div id="authSection" class="flex-1 w-full max-w-md mx-auto py-10 px-4">
+    <!-- Login Form -->
+    <div id="loginForm" class="auth-form visible bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-2xl font-bold text-green-700 mb-6 text-center">Vendor Login</h2>
+      <form id="loginFormElement" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Email</label>
+          <input type="email" id="loginEmail" class="form-input border rounded px-3 py-3" required>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Password</label>
+          <input type="password" id="loginPassword" class="form-input border rounded px-3 py-3" required minlength="6">
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition active:bg-green-800">
+          Login
+        </button>
+        <div class="text-center">
+          <button type="button" onclick="showSignupForm()" class="text-green-600 hover:text-green-800 text-sm">
+            Don't have an account? Sign up
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signupForm" class="auth-form hidden bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-2xl font-bold text-green-700 mb-6 text-center">Vendor Sign Up</h2>
+      <form id="signupFormElement" class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Full Name</label>
+          <input type="text" id="signupName" class="form-input border rounded px-3 py-3" required>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Email</label>
+          <input type="email" id="signupEmail" class="form-input border rounded px-3 py-3" required>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Password</label>
+          <input type="password" id="signupPassword" class="form-input border rounded px-3 py-3" required minlength="6">
+        </div>
+        <div class="flex flex-col gap-2">
+          <label class="font-medium">Confirm Password</label>
+          <input type="password" id="signupConfirmPassword" class="form-input border rounded px-3 py-3" required minlength="6">
+        </div>
+        <button type="submit" class="bg-green-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-green-700 transition active:bg-green-800">
+          Sign Up
+        </button>
+        <div class="text-center">
+          <button type="button" onclick="showLoginForm()" class="text-green-600 hover:text-green-800 text-sm">
+            Already have an account? Login
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Vendor Dashboard (Hidden until authenticated) -->
+  <div id="vendorDashboard" class="hidden flex-1 w-full max-w-3xl mx-auto py-10 px-4">
     <h1 class="text-3xl font-extrabold text-green-800 mb-6 text-center">Vendor Dashboard</h1>
     <!-- Add Product Form -->
     <form id="addProductForm" class="bg-white rounded-xl shadow p-6 mb-8 flex flex-col gap-4">
@@ -134,16 +212,16 @@
       <div id="productList" class="grid grid-cols-1 sm:grid-cols-2 gap-6"></div>
       <p id="noProductsMsg" class="text-gray-400 text-center mt-4">No products added yet.</p>
     </div>
-  </main>
+  </div>
 
   <footer class="bg-white border-t mt-auto py-6 text-center text-gray-400 text-sm">
-    &copy; 2024 NaYa Market. All rights reserved.
+    &copy; 2025 NaYa Market. All rights reserved.
   </footer>
 
   <script type="module" src="js/vendor.js"></script>
   <script>
     // Character counter for description
-    document.getElementById('productDescription').addEventListener('input', function() {
+    document.getElementById('productDescription')?.addEventListener('input', function() {
       const charCount = document.getElementById('charCount');
       charCount.textContent = this.value.length + '/500';
     });
@@ -161,6 +239,17 @@
         }
       });
     });
+
+    // Auth form switching
+    window.showSignupForm = function() {
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('signupForm').classList.remove('hidden');
+    };
+
+    window.showLoginForm = function() {
+      document.getElementById('signupForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+    };
   </script>
 </body>
 </html>

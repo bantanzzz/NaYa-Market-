@@ -1,0 +1,25 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Allow read access to all product images
+    match /product-images/{imageId} {
+      allow read: if true;
+      allow write: if true;
+      allow delete: if true;
+    }
+    
+    // Allow read access to test images
+    match /test-images/{imageId} {
+      allow read: if true;
+      allow write: if true;
+      allow delete: if true;
+    }
+    
+    // Default rule - deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

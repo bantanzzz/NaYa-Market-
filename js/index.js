@@ -53,8 +53,15 @@ function createProductCard(product) {
   else if (product.category === 'Electronics') colorClass = 'blue';
   else if (product.category === 'Food') colorClass = 'yellow';
   
+  // Handle both Storage URLs and data URLs for backward compatibility
+  const imageSrc = product.image || 'https://via.placeholder.com/112x112?text=No+Image';
+  
+  // Show vendor info if available
+  const vendorInfo = product.vendorEmail ? `<p class="text-xs text-gray-400 mb-1">by ${product.vendorEmail}</p>` : '';
+  
   card.innerHTML = `
-    <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-${colorClass}-100 shadow" loading="lazy">
+    <img src="${imageSrc}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-${colorClass}-100 shadow" loading="lazy" onerror="this.src='https://via.placeholder.com/112x112?text=Image+Error'">
+    ${vendorInfo}
     <h2 class="text-xl font-bold mb-1 text-${colorClass}-700">${product.name}</h2>
     <p class="text-gray-500 mb-1 text-sm">${product.category} <span class="mx-1">•</span> ${product.location}</p>
     <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
@@ -148,7 +155,7 @@ async function loadVendorProducts() {
     vendorsContainer.innerHTML = '';
     renderProducts(currentProducts, vendorsContainer);
     
-    console.log(`Loaded ${currentProducts.length} products`);
+    console.log(`Loaded ${currentProducts.length} products from Firebase Storage`);
     
   } catch (error) {
     console.error("Error loading products from Firebase: ", error);
@@ -182,7 +189,8 @@ async function performDatabaseSearch(searchTerm) {
       return product.name.toLowerCase().includes(searchLower) ||
              product.category.toLowerCase().includes(searchLower) ||
              product.location.toLowerCase().includes(searchLower) ||
-             (product.description && product.description.toLowerCase().includes(searchLower));
+             (product.description && product.description.toLowerCase().includes(searchLower)) ||
+             (product.vendorEmail && product.vendorEmail.toLowerCase().includes(searchLower));
     });
     
     // If no results in current products, search database
