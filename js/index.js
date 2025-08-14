@@ -5,12 +5,14 @@ import { getFirestore, collection, getDocs } from "https://www.gstatic.com/fireb
 
 // 🔸 Replace with your own Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyDXfcM8ClwOJE8Zv6u-N-RuLCxNnjwXuus",
-  authDomain: "naya-market-60190.firebaseapp.com",
-  projectId: "naya-market-60190",
-  storageBucket: "naya-market-60190.firebasestorage.app",
-  messagingSenderId: "591341489607",
-  appId: "1:591341489607:web:f7b75b28d85d7481869de2"
+  apiKey: "AIzaSyAmo-k0nfZfhHpllglRpG_47hy8xkKHwZk",
+  authDomain: "naya-market-dfc44.firebaseapp.com",
+  databaseURL: "https://naya-market-dfc44-default-rtdb.firebaseio.com",
+  projectId: "naya-market-dfc44",
+  storageBucket: "naya-market-dfc44.firebasestorage.app",
+  messagingSenderId: "43888035069",
+  appId: "1:43888035069:web:c06a7cd0de1732f731aa94",
+  measurementId: "G-DBE1VS39RS"
 };
 
 // 🔸 Initialize Firebase
