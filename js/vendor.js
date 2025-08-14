@@ -43,7 +43,7 @@ let isLoading = false;
 let currentUser = null;
 
 // 🔸 UI Elements
-let authSection, vendorDashboard, userEmail, logoutBtn;
+let authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn;
 
 // 🔸 Authentication Functions
 async function signUp(email, password, fullName) {
@@ -128,6 +128,7 @@ function showAuthSection() {
   authSection.classList.remove('hidden');
   vendorDashboard.classList.add('hidden');
   userEmail.classList.add('hidden');
+  userEmailMobile.classList.add('hidden');
   logoutBtn.classList.add('hidden');
 }
 
@@ -135,17 +136,18 @@ function showVendorDashboard() {
   authSection.classList.add('hidden');
   vendorDashboard.classList.remove('hidden');
   userEmail.classList.remove('hidden');
+  userEmailMobile.classList.remove('hidden');
   logoutBtn.classList.remove('hidden');
 }
 
 function updateUserInfo(user) {
   if (user) {
-    userEmail.textContent = user.email || 'User';
-    if (user.displayName) {
-      userEmail.textContent = `${user.displayName} (${user.email})`;
-    }
+    const displayText = user.displayName ? `${user.displayName} (${user.email})` : user.email;
+    userEmail.textContent = displayText;
+    userEmailMobile.textContent = user.displayName || user.email;
   } else {
     userEmail.textContent = '';
+    userEmailMobile.textContent = '';
   }
 }
 
@@ -220,7 +222,7 @@ async function deleteImageFromStorage(imageURL) {
   }
 }
 
-// 🔸 Optimized product rendering with DocumentFragment
+// 🔸 Optimized product rendering with DocumentFragment and responsive design
 function renderProducts() {
   if (isLoading) return;
   
@@ -241,23 +243,24 @@ function renderProducts() {
   
   products.forEach((product, idx) => {
     const card = document.createElement('div');
-    card.className = 'vendor-card bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition relative';
+    card.className = 'product-card bg-white rounded-xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition relative';
     card.innerHTML = `
-      <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow" loading="lazy">
-      <h2 class="text-xl font-bold mb-1 text-green-700">${product.name}</h2>
-      <p class="text-gray-500 mb-1 text-sm">${product.category} <span class="mx-1">•</span> ${product.location}</p>
-      <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
-      <p class="text-gray-600 text-sm mb-2">${product.description || 'No description available'}</p>
-      <a href="https://wa.me/${product.whatsapp}?text=I'm%20interested%20in%20buying%20${product.name}%20priced%20at%20Le%20${product.price}" target="_blank" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+      <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow" loading="lazy" onerror="this.src='https://via.placeholder.com/112x112?text=Image+Error'">
+      <h2 class="text-xl font-bold mb-1 text-green-700 text-center">${product.name}</h2>
+      <p class="text-gray-500 mb-1 text-sm text-center">${product.category} <span class="mx-1">•</span> ${product.location}</p>
+      <p class="text-gray-500 mb-1 text-sm font-semibold">Le ${product.price}</p>
+      <p class="text-gray-600 text-sm mb-3 text-center hidden description">${product.description || 'No description available'}</p>
+      <button class="text-green-600 text-sm font-medium mb-3 show-description hover:text-green-800 transition">Show Description</button>
+      <a href="https://wa.me/${product.whatsapp}?text=I'm%20interested%20in%20buying%20${product.name}%20priced%20at%20Le%20${product.price}" target="_blank" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
         Buy Now
       </a>
-      <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+      <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
         WhatsApp
       </a>
-      <button onclick="deleteProduct(${idx})" class="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition" title="Delete">
-        <svg xmlns='http://www.w3.org/2000/svg' class='h-5 w-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>
+      <button onclick="deleteProduct(${idx})" class="absolute top-3 right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow" title="Delete">
+        <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>
       </button>
     `;
     
@@ -265,6 +268,77 @@ function renderProducts() {
   });
   
   productList.appendChild(fragment);
+  
+  // Setup description toggles for new cards
+  setupDescriptionToggles();
+  
+  // Update product count
+  if (window.updateProductCount) {
+    window.updateProductCount(products.length);
+  }
+}
+
+// 🔸 Setup description toggle functionality
+function setupDescriptionToggles() {
+  const descriptions = document.querySelectorAll('.description');
+  const buttons = document.querySelectorAll('.show-description');
+  
+  buttons.forEach((button, index) => {
+    // Remove existing event listeners to prevent duplicates
+    button.replaceWith(button.cloneNode(true));
+  });
+  
+  // Get fresh references after cloning
+  const freshButtons = document.querySelectorAll('.show-description');
+  
+  freshButtons.forEach((button, index) => {
+    button.addEventListener('click', () => {
+      const description = button.parentElement.querySelector('.description');
+      if (description.classList.contains('hidden')) {
+        description.classList.remove('hidden');
+        button.textContent = 'Hide Description';
+        button.classList.add('text-red-600');
+      } else {
+        description.classList.add('hidden');
+        button.textContent = 'Show Description';
+        button.classList.remove('text-red-600');
+      }
+    });
+  });
+}
+
+// 🔸 Load existing products from Firebase (only for authenticated user)
+async function loadProducts() {
+  if (isLoading || !currentUser) return;
+  
+  try {
+    isLoading = true;
+    console.log('Loading products from Firebase for user:', currentUser.uid);
+    
+    // Load products for the current user only
+    const q = query(
+      collection(db, "vendors"), 
+      where("vendorId", "==", currentUser.uid),
+      orderBy("createdAt", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    products = [];
+    querySnapshot.forEach((doc) => {
+      const product = doc.data();
+      product.id = doc.id; // Store document ID for deletion
+      products.push(product);
+    });
+    
+    console.log(`Loaded ${products.length} products from Firebase for user`);
+    renderProducts();
+    
+  } catch (error) {
+    console.error("Error loading products: ", error);
+    products = [];
+    renderProducts();
+  } finally {
+    isLoading = false;
+  }
 }
 
 // Wait for DOM to be fully loaded
@@ -275,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
   authSection = document.getElementById('authSection');
   vendorDashboard = document.getElementById('vendorDashboard');
   userEmail = document.getElementById('userEmail');
+  userEmailMobile = document.getElementById('userEmailMobile');
   logoutBtn = document.getElementById('logoutBtn');
   
   // Get form elements
@@ -288,7 +363,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const previewImg = document.getElementById('previewImg');
   
   console.log('UI elements found:', {
-    authSection, vendorDashboard, userEmail, logoutBtn,
+    authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn,
     loginFormElement, signupFormElement, addProductForm
   });
 
@@ -400,40 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
       submitBtn.disabled = false;
     }
   });
-
-  // 🔸 Load existing products from Firebase (only for authenticated user)
-  async function loadProducts() {
-    if (isLoading || !currentUser) return;
-    
-    try {
-      isLoading = true;
-      console.log('Loading products from Firebase for user:', currentUser.uid);
-      
-      // Load products for the current user only
-      const q = query(
-        collection(db, "vendors"), 
-        where("vendorId", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
-      );
-      const querySnapshot = await getDocs(q);
-      products = [];
-      querySnapshot.forEach((doc) => {
-        const product = doc.data();
-        product.id = doc.id; // Store document ID for deletion
-        products.push(product);
-      });
-      
-      console.log(`Loaded ${products.length} products from Firebase for user`);
-      renderProducts();
-      
-    } catch (error) {
-      console.error("Error loading products: ", error);
-      products = [];
-      renderProducts();
-    } finally {
-      isLoading = false;
-    }
-  }
 
   // 🔸 Handle image preview
   imageInput.addEventListener('change', function(e) {
@@ -562,5 +603,5 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProducts();
   };
 
-  console.log('Vendor page initialized with authentication');
+  console.log('Vendor page initialized with authentication and responsive design');
 });
