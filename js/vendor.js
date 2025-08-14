@@ -14,25 +14,58 @@ const firebaseConfig = {
   measurementId: "G-DBE1VS39RS"
 };
 
+// 🔸 Initialize Firebase globally
+let app, db;
+
+try {
+  app = initializeApp(firebaseConfig);
+  console.log('Firebase app initialized successfully');
+  
+  db = getFirestore(app);
+  console.log('Firestore initialized');
+  
+  console.log('Storage disabled - using free plan');
+} catch (error) {
+  console.error('Error initializing Firebase:', error);
+  alert('Failed to initialize Firebase. Please check your configuration.');
+}
+
+// Save product to Firebase Firestore (without Storage for free plan)
+async function saveProductToFirebase(product) {
+  try {
+    console.log('Starting Firebase save process...');
+    
+    // For free plan, we'll store the image as a data URL directly in Firestore
+    // Note: This has size limitations but works for free tier
+    console.log('Saving product data to Firestore (free plan mode)...');
+    
+    const docRef = await addDoc(collection(db, "vendors"), {
+      name: product.name,
+      price: product.price,
+      category: product.category,
+      location: product.location,
+      whatsapp: product.whatsapp,
+      description: product.description,
+      image: product.image, // Store the data URL directly
+      createdAt: serverTimestamp()
+    });
+    
+    console.log("Product saved with ID: ", docRef.id);
+    return true;
+  } catch (error) {
+    console.error("Error saving product to Firebase: ", error);
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    return false;
+  }
+}
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM loaded, initializing Firebase...');
-  
-  let app, db;
-  
-  try {
-    app = initializeApp(firebaseConfig);
-    console.log('Firebase app initialized successfully');
-    
-    db = getFirestore(app);
-    console.log('Firestore initialized');
-    
-    console.log('Storage disabled - using free plan');
-  } catch (error) {
-    console.error('Error initializing Firebase:', error);
-    alert('Failed to initialize Firebase. Please check your configuration.');
-    return;
-  }
+  console.log('DOM loaded, Firebase already initialized...');
   
   const addProductForm = document.getElementById('addProductForm');
   const productList = document.getElementById('productList');
@@ -174,39 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     reader.readAsDataURL(imageFile);
   };
-
-  // Save product to Firebase Firestore (without Storage for free plan)
-  async function saveProductToFirebase(product) {
-    try {
-      console.log('Starting Firebase save process...');
-      
-      // For free plan, we'll store the image as a data URL directly in Firestore
-      // Note: This has size limitations but works for free tier
-      console.log('Saving product data to Firestore (free plan mode)...');
-      
-      const docRef = await addDoc(collection(db, "vendors"), {
-        name: product.name,
-        price: product.price,
-        category: product.category,
-        location: product.location,
-        whatsapp: product.whatsapp,
-        description: product.description,
-        image: product.image, // Store the data URL directly
-        createdAt: serverTimestamp()
-      });
-      
-      console.log("Product saved with ID: ", docRef.id);
-      return true;
-    } catch (error) {
-      console.error("Error saving product to Firebase: ", error);
-      console.error("Error details:", {
-        message: error.message,
-        code: error.code,
-        stack: error.stack
-      });
-      return false;
-    }
-  }
 
   window.deleteProduct = async function(idx) {
     const product = products[idx];
