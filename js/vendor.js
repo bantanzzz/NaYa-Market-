@@ -39,8 +39,10 @@ try {
 
 // 🔸 Performance optimizations
 let products = [];
+let filteredProducts = [];
 let isLoading = false;
 let currentUser = null;
+let currentCategoryFilter = 'All';
 
 // 🔸 UI Elements
 let authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn;
@@ -231,7 +233,10 @@ function renderProducts() {
   
   productList.innerHTML = '';
   
-  if (products.length === 0) {
+  // Use filtered products if available, otherwise use all products
+  const productsToRender = filteredProducts.length > 0 ? filteredProducts : products;
+  
+  if (productsToRender.length === 0) {
     noProductsMsg.style.display = '';
     return;
   }
@@ -241,7 +246,7 @@ function renderProducts() {
   // Use DocumentFragment for better performance
   const fragment = document.createDocumentFragment();
   
-  products.forEach((product, idx) => {
+  productsToRender.forEach((product, idx) => {
     const card = document.createElement('div');
     card.className = 'product-card bg-white rounded-xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition relative';
     card.innerHTML = `
@@ -274,7 +279,7 @@ function renderProducts() {
   
   // Update product count
   if (window.updateProductCount) {
-    window.updateProductCount(products.length);
+    window.updateProductCount(productsToRender.length);
   }
 }
 
@@ -307,6 +312,27 @@ function setupDescriptionToggles() {
   });
 }
 
+// 🔸 Filter products by category
+function filterProductsByCategory(category) {
+  if (category === 'All') {
+    filteredProducts = [...products];
+  } else {
+    filteredProducts = products.filter(product => product.category === category);
+  }
+  
+  // Update filter status text
+  const filterStatus = document.getElementById('filterStatus');
+  if (filterStatus) {
+    if (category === 'All') {
+      filterStatus.textContent = 'Showing all products';
+    } else {
+      filterStatus.textContent = `Showing ${category} products`;
+    }
+  }
+  
+  renderProducts();
+}
+
 // 🔸 Load existing products from Firebase (only for authenticated user)
 async function loadProducts() {
   if (isLoading || !currentUser) return;
@@ -330,6 +356,8 @@ async function loadProducts() {
     });
     
     console.log(`Loaded ${products.length} products from Firebase for user`);
+    // Initialize filtered products with all products
+    filteredProducts = [...products];
     renderProducts();
     
   } catch (error) {
@@ -501,6 +529,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // 🔸 Phone number validation function for Sierra Leone
+  function validateSierraLeonePhone(phoneNumber) {
+    // Remove any spaces or special characters except + and digits
+    const cleanNumber = phoneNumber.replace(/[^\d+]/g, '');
+    
+    // Check if it starts with +232 or 232
+    if (cleanNumber.startsWith('+232')) {
+      const mobilePart = cleanNumber.substring(4);
+      // Mobile number should be 7 digits starting with 2-9
+      return /^[2-9]\d{6}$/.test(mobilePart);
+    } else if (cleanNumber.startsWith('232')) {
+      const mobilePart = cleanNumber.substring(3);
+      // Mobile number should be 7 digits starting with 2-9
+      return /^[2-9]\d{6}$/.test(mobilePart);
+    }
+    
+    return false;
+  }
+
   // 🔸 Set up add product form
   addProductForm.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -520,6 +567,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageFile = document.getElementById('productImage').files[0];
     
     console.log('Form data:', { name, price, category, location, whatsapp, imageFile: imageFile ? 'selected' : 'none' });
+    
+    // Validate phone number
+    if (!validateSierraLeonePhone(whatsapp)) {
+      alert('Please enter a valid Sierra Leone phone number. Format: +232XXXXXXXXX or 232XXXXXXXXX (where X is a digit)');
+      return;
+    }
     
     if (!imageFile) {
       alert('Please select an image');
@@ -551,6 +604,12 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Product saved to Firebase successfully');
         // Add to local products array for immediate display
         products.unshift(newProduct); // Add to beginning for better UX
+        
+        // Update filtered products based on current filter
+        if (currentCategoryFilter === 'All' || newProduct.category === currentCategoryFilter) {
+          filteredProducts.unshift(newProduct);
+        }
+        
         renderProducts();
         addProductForm.reset();
         imagePreview.classList.add('hidden');
@@ -600,8 +659,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     products.splice(idx, 1);
+    
+    // Update filtered products
+    if (currentCategoryFilter === 'All') {
+      filteredProducts = [...products];
+    } else {
+      filteredProducts = products.filter(product => product.category === currentCategoryFilter);
+    }
+    
     renderProducts();
   };
+
+  // 🔸 Set up category filter buttons
+  const categoryFilterButtons = document.querySelectorAll('.category-filter-btn');
+  categoryFilterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const selectedCategory = btn.getAttribute('data-category');
+      
+      // Update current filter
+      currentCategoryFilter = selectedCategory;
+      
+      // Remove active state from all buttons
+      categoryFilterButtons.forEach(b => {
+        b.classList.remove('active');
+      });
+      
+      // Add active state to selected button
+      btn.classList.add('active');
+      
+      // Filter products
+      filterProductsByCategory(selectedCategory);
+    });
+  });
+
+  // Set default "All" category as active
+  const allCategoryBtn = document.querySelector('.category-filter-btn[data-category="All"]');
+  if (allCategoryBtn) {
+    allCategoryBtn.classList.add('active');
+  }
+
+  // 🔸 Set up real-time phone number validation
+  const whatsappInput = document.getElementById('productWhatsApp');
+  if (whatsappInput) {
+    whatsappInput.addEventListener('input', function() {
+      const phoneNumber = this.value.trim();
+      const isValid = phoneNumber === '' || validateSierraLeonePhone(phoneNumber);
+      
+      if (phoneNumber !== '') {
+        if (isValid) {
+          this.classList.remove('border-red-500');
+          this.classList.add('border-green-500');
+          // Remove any existing error message
+          const existingError = this.parentElement.querySelector('.phone-error');
+          if (existingError) {
+            existingError.remove();
+          }
+        } else {
+          this.classList.remove('border-green-500');
+          this.classList.add('border-red-500');
+          // Add error message if not already present
+          if (!this.parentElement.querySelector('.phone-error')) {
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'phone-error text-red-500 text-sm mt-1';
+            errorMsg.textContent = 'Please enter a valid Sierra Leone number (e.g., +23276767676)';
+            this.parentElement.appendChild(errorMsg);
+          }
+        }
+      } else {
+        this.classList.remove('border-red-500', 'border-green-500');
+        // Remove error message when field is empty
+        const existingError = this.parentElement.querySelector('.phone-error');
+        if (existingError) {
+          existingError.remove();
+        }
+      }
+    });
+  }
 
   console.log('Vendor page initialized with authentication and responsive design');
 });
