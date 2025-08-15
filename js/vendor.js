@@ -534,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Remove any spaces or special characters except + and digits
     const cleanNumber = phoneNumber.replace(/[^\d+]/g, '');
     
-    // Check if it starts with +232 or 232
+    // Check if it starts with +232, 232, or 0
     if (cleanNumber.startsWith('+232')) {
       const mobilePart = cleanNumber.substring(4);
       // Mobile number should be 7 digits starting with 2-9
@@ -543,6 +543,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const mobilePart = cleanNumber.substring(3);
       // Mobile number should be 7 digits starting with 2-9
       return /^[2-9]\d{6}$/.test(mobilePart);
+    } else if (cleanNumber.startsWith('0')) {
+      // Mobile number should be 10 digits
+      return /^\d{10}$/.test(cleanNumber.substring(1));
     }
     
     return false;
@@ -570,7 +573,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Validate phone number
     if (!validateSierraLeonePhone(whatsapp)) {
-      alert('Please enter a valid Sierra Leone phone number. Format: +232XXXXXXXXX or 232XXXXXXXXX (where X is a digit)');
+      alert('Please enter a valid Sierra Leone phone number. Format: +232XXXXXXXXX, 232XXXXXXXXX, or 0XXXXXXXXX (where X is a digit)');
       return;
     }
     
@@ -721,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (!this.parentElement.querySelector('.phone-error')) {
             const errorMsg = document.createElement('div');
             errorMsg.className = 'phone-error text-red-500 text-sm mt-1';
-            errorMsg.textContent = 'Please enter a valid Sierra Leone number (e.g., +23276767676)';
+            errorMsg.textContent = 'Please enter a valid Sierra Leone number (e.g., +23276767676 or 076767676)';
             this.parentElement.appendChild(errorMsg);
           }
         }
