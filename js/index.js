@@ -67,7 +67,7 @@ function createProductCard(product) {
     <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
     <p class="text-gray-600 text-sm mb-2 hidden description">${product.description || 'No description available'}</p>
     <button class="text-green-600 text-sm font-medium mb-2 show-description hover:text-green-800 transition">Show Description</button>
-    <a href="tel:*144*2*1#" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+    <a href="${product.paymentNumber ? 'tel:' + product.paymentNumber : 'tel:*144*2*1#'}" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
       Buy Now
     </a>
