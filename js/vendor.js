@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // 🔸 Replace with your own Firebase config
 const firebaseConfig = {
@@ -18,6 +18,10 @@ const firebaseConfig = {
 
 // 🔸 Initialize Firebase globally
 let app, db, storage, auth;
+let loginRecaptchaVerifier = null;
+let signupRecaptchaVerifier = null;
+let phoneConfirmationResult = null;
+let signupPhoneConfirmationResult = null;
 
 try {
   app = initializeApp(firebaseConfig);
@@ -31,6 +35,7 @@ try {
   
   auth = getAuth(app);
   console.log('Firebase Auth initialized');
+  auth.languageCode = 'en';
   
 } catch (error) {
   console.error('Error initializing Firebase:', error);
@@ -144,9 +149,11 @@ function showVendorDashboard() {
 
 function updateUserInfo(user) {
   if (user) {
-    const displayText = user.displayName ? `${user.displayName} (${user.email})` : user.email;
+    const identifier = user.phoneNumber || user.email;
+    const namePart = user.displayName ? `${user.displayName} ` : '';
+    const displayText = namePart + (identifier || '');
     userEmail.textContent = displayText;
-    userEmailMobile.textContent = user.displayName || user.email;
+    userEmailMobile.textContent = user.displayName || identifier || '';
   } else {
     userEmail.textContent = '';
     userEmailMobile.textContent = '';
@@ -384,6 +391,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Get form elements
   const loginFormElement = document.getElementById('loginFormElement');
   const signupFormElement = document.getElementById('signupFormElement');
+  const sendOtpBtn = document.getElementById('sendOtpBtn');
+  const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+  const loginPhoneInput = document.getElementById('loginPhone');
+  const loginOtpInput = document.getElementById('loginOtp');
+  const sendSignupOtpBtn = document.getElementById('sendSignupOtpBtn');
+  const verifySignupOtpBtn = document.getElementById('verifySignupOtpBtn');
+  const signupPhoneInput = document.getElementById('signupPhone');
+  const signupOtpInput = document.getElementById('signupOtp');
   const addProductForm = document.getElementById('addProductForm');
   const productList = document.getElementById('productList');
   const noProductsMsg = document.getElementById('noProductsMsg');
@@ -401,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentUser = user;
     
     if (user) {
-      console.log('User is signed in:', user.email);
+      console.log('User is signed in:', user.email || user.phoneNumber);
       showVendorDashboard();
       updateUserInfo(user);
       loadProducts(); // Load user's products
@@ -455,6 +470,94 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       submitBtn.textContent = originalText;
       submitBtn.disabled = false;
+    }
+  });
+
+  // 🔸 Initialize visible reCAPTCHA for login phone
+  function ensureLoginRecaptcha() {
+    if (!loginRecaptchaVerifier) {
+      const containerId = 'vendor-recaptcha';
+      const container = document.getElementById(containerId);
+      if (container) {
+        loginRecaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+      }
+    }
+  }
+
+  // 🔸 Initialize visible reCAPTCHA for signup phone
+  function ensureSignupRecaptcha() {
+    if (!signupRecaptchaVerifier) {
+      const containerId = 'vendor-recaptcha-signup';
+      const container = document.getElementById(containerId);
+      if (container) {
+        signupRecaptchaVerifier = new RecaptchaVerifier(auth, containerId, { size: 'invisible' });
+      }
+    }
+  }
+
+  // 🔸 Send OTP for login
+  sendOtpBtn?.addEventListener('click', async () => {
+    try {
+      const phone = (loginPhoneInput?.value || '').trim();
+      if (!phone.startsWith('+') || phone.length < 8) {
+        alert('Enter a valid phone with country code, e.g., +23275674419');
+        return;
+      }
+      ensureLoginRecaptcha();
+      await loginRecaptchaVerifier.render();
+      phoneConfirmationResult = await signInWithPhoneNumber(auth, phone, loginRecaptchaVerifier);
+      alert('OTP sent. Please check your phone.');
+    } catch (error) {
+      alert('Failed to send OTP: ' + error.message);
+    }
+  });
+
+  // 🔸 Verify OTP for login
+  verifyOtpBtn?.addEventListener('click', async () => {
+    try {
+      const code = (loginOtpInput?.value || '').trim();
+      if (!code) { alert('Enter the OTP code'); return; }
+      if (!phoneConfirmationResult) { alert('Please send OTP first'); return; }
+      const result = await phoneConfirmationResult.confirm(code);
+      alert('Phone login successful');
+      // Auth state listener updates UI
+    } catch (error) {
+      alert('OTP verification failed: ' + error.message);
+    }
+  });
+
+  // 🔸 Send OTP for signup
+  sendSignupOtpBtn?.addEventListener('click', async () => {
+    try {
+      const phone = (signupPhoneInput?.value || '').trim();
+      if (!phone.startsWith('+') || phone.length < 8) {
+        alert('Enter a valid phone with country code, e.g., +23275674419');
+        return;
+      }
+      ensureSignupRecaptcha();
+      await signupRecaptchaVerifier.render();
+      signupPhoneConfirmationResult = await signInWithPhoneNumber(auth, phone, signupRecaptchaVerifier);
+      alert('OTP sent. Please check your phone.');
+    } catch (error) {
+      alert('Failed to send OTP: ' + error.message);
+    }
+  });
+
+  // 🔸 Verify OTP for signup
+  verifySignupOtpBtn?.addEventListener('click', async () => {
+    try {
+      const code = (signupOtpInput?.value || '').trim();
+      if (!code) { alert('Enter the OTP code'); return; }
+      if (!signupPhoneConfirmationResult) { alert('Please send OTP first'); return; }
+      const result = await signupPhoneConfirmationResult.confirm(code);
+      alert('Phone signup/login successful');
+      // Optionally set display name from signup form
+      const fullName = document.getElementById('signupName')?.value?.trim();
+      if (fullName) {
+        try { await updateProfile(result.user, { displayName: fullName }); } catch (_) {}
+      }
+    } catch (error) {
+      alert('OTP verification failed: ' + error.message);
     }
   });
 

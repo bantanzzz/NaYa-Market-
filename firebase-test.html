@@ -56,6 +56,22 @@
     </div>
   </div>
 
+  <div class="test-section">
+    <h3>📱 Phone Number Signup (Firebase Auth)</h3>
+    <p>Enter phone number with country code (e.g., +2348012345678)</p>
+    <input type="text" id="phoneNumber" placeholder="+234..." style="padding:8px; width:260px;">
+    <button onclick="sendOTP()">Send OTP</button>
+    <div id="recaptcha-container" style="margin-top:10px;"></div>
+    <div style="margin-top:10px;">
+      <input type="text" id="otpCode" placeholder="Enter OTP" style="padding:8px; width:160px;">
+      <button onclick="verifyOTP()">Verify OTP</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button onclick="logoutUser()">Sign Out</button>
+    </div>
+    <p id="authStatus" style="margin-top:10px; color:#333;"></p>
+  </div>
+
   <div id="log"></div>
 
   <script type="module">
@@ -63,6 +79,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject, listAll } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+    import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     // Firebase config
     const firebaseConfig = {
@@ -76,7 +93,9 @@
       measurementId: "G-DBE1VS39RS"
     };
 
-    let app, db, storage;
+    let app, db, storage, auth;
+    let recaptchaVerifier = null;
+    let confirmationResult = null;
 
     function log(message, type = 'info') {
       const logDiv = document.getElementById('log');
@@ -167,6 +186,25 @@
         // Test Storage (Blaze plan)
         storage = getStorage(app);
         log('✅ Firebase Storage initialized successfully (Blaze plan active!)', 'success');
+
+        // Init Auth
+        auth = getAuth(app);
+        auth.languageCode = 'en';
+        log('✅ Firebase Auth initialized successfully', 'success');
+
+        // Setup reCAPTCHA if not created yet
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        if (recaptchaContainer && !recaptchaVerifier) {
+          try {
+            recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+              size: 'invisible',
+            });
+            await recaptchaVerifier.render();
+            log('✅ reCAPTCHA verifier ready', 'success');
+          } catch (e) {
+            log(`❌ reCAPTCHA setup failed: ${e.message}`, 'error');
+          }
+        }
         
         // Test reading from Firestore
         try {
@@ -178,6 +216,74 @@
         
       } catch (error) {
         log(`❌ Firebase initialization failed: ${error.message}`, 'error');
+      }
+    };
+
+    // Phone Auth: Send OTP
+    window.sendOTP = async function() {
+      try {
+        if (!app) {
+          log('ℹ️ Initializing Firebase before sending OTP...', 'info');
+          await window.testFirebaseConnection();
+        }
+
+        const phoneInput = document.getElementById('phoneNumber');
+        const phoneNumber = (phoneInput?.value || '').trim();
+        if (!phoneNumber.startsWith('+') || phoneNumber.length < 8) {
+          log('❌ Enter a valid phone number with country code (e.g., +234...)', 'error');
+          return;
+        }
+
+        // Ensure reCAPTCHA exists
+        if (!recaptchaVerifier) {
+          recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
+          await recaptchaVerifier.render();
+        }
+
+        log(`Sending OTP to ${phoneNumber}...`, 'info');
+        confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+        log('✅ OTP sent. Check your phone and enter the code.', 'success');
+      } catch (error) {
+        log(`❌ Failed to send OTP: ${error.message}`, 'error');
+      }
+    };
+
+    // Phone Auth: Verify OTP
+    window.verifyOTP = async function() {
+      try {
+        const codeInput = document.getElementById('otpCode');
+        const code = (codeInput?.value || '').trim();
+        if (!code) {
+          log('❌ Enter the OTP code you received', 'error');
+          return;
+        }
+        if (!confirmationResult) {
+          log('❌ Send OTP first', 'error');
+          return;
+        }
+
+        log('Verifying OTP...', 'info');
+        const result = await confirmationResult.confirm(code);
+        const user = result.user;
+        document.getElementById('authStatus').textContent = `Signed in as ${user.phoneNumber}`;
+        log(`🎉 Phone auth successful. User: ${user.uid}`, 'success');
+      } catch (error) {
+        log(`❌ OTP verification failed: ${error.message}`, 'error');
+      }
+    };
+
+    // Sign out
+    window.logoutUser = async function() {
+      try {
+        if (!auth) {
+          log('ℹ️ Firebase not initialized yet.', 'info');
+          return;
+        }
+        await signOut(auth);
+        document.getElementById('authStatus').textContent = '';
+        log('✅ Signed out', 'success');
+      } catch (error) {
+        log(`❌ Sign out failed: ${error.message}`, 'error');
       }
     };
 
@@ -284,6 +390,25 @@
     window.addEventListener('load', () => {
       log('Page loaded. Click "Test Connection" to begin testing.', 'info');
       log('🎉 Blaze plan detected - Storage functionality available!', 'success');
+
+      // Observe auth state if/when initialized
+      try {
+        // We cannot call getAuth() before initializeApp, so we attach listener lazily
+        const interval = setInterval(() => {
+          if (typeof getAuth === 'function' && app) {
+            try {
+              if (!auth) auth = getAuth(app);
+              onAuthStateChanged(auth, (user) => {
+                const status = document.getElementById('authStatus');
+                if (status) {
+                  status.textContent = user ? `Signed in as ${user.phoneNumber}` : '';
+                }
+              });
+              clearInterval(interval);
+            } catch (_) {}
+          }
+        }, 500);
+      } catch (_) {}
     });
   </script>
 </body>
