@@ -283,6 +283,13 @@
             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
             <span id="userEmail" class="user-info hidden"></span>
           </div>
+          <!-- Notification Settings -->
+          <button id="notificationSettingsBtn" class="p-2 text-gray-600 hover:text-green-600 transition hidden" title="Notification Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M9 11h.01M9 8h.01M9 5h.01M9 2h.01"/>
+            </svg>
+          </button>
         </div>
         
         <!-- Mobile User Info -->
@@ -491,6 +498,62 @@
     </div>
   </div>
 
+  <!-- Notification Settings Modal -->
+  <div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden">
+    <div class="flex items-center justify-center min-h-screen p-4">
+      <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold text-green-700">🔔 Notification Settings</h3>
+          <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-medium text-gray-700">Browser Notifications</h4>
+              <p class="text-sm text-gray-500">Get notified when other vendors add products</p>
+            </div>
+            <button id="enableNotificationsBtn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+              Enable
+            </button>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-medium text-gray-700">Sound Alerts</h4>
+              <p class="text-sm text-gray-500">Play sound when notifications arrive</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="soundToggle" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+          
+          <div class="flex items-center justify-between">
+            <div>
+              <h4 class="font-medium text-gray-700">In-App Notifications</h4>
+              <p class="text-sm text-gray-500">Show notifications within the app</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="inAppToggle" class="sr-only peer" checked>
+              <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
+            </label>
+          </div>
+        </div>
+        
+        <div class="mt-6 pt-4 border-t border-gray-200">
+          <p class="text-xs text-gray-500 text-center">
+            Notifications help you stay updated with new products from other vendors
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="bg-white border-t mt-auto py-6 text-center text-gray-400 text-sm">
     &copy; 2025 NaYa Market. All rights reserved.
   </footer>
@@ -538,6 +601,22 @@
 
     // Make function globally available
     window.updateProductCount = updateProductCount;
+    
+    // Notification Modal Functions
+    window.openNotificationModal = function() {
+      document.getElementById('notificationModal').classList.remove('hidden');
+    };
+    
+    window.closeNotificationModal = function() {
+      document.getElementById('notificationModal').classList.add('hidden');
+    };
+    
+    // Close modal when clicking outside
+    document.getElementById('notificationModal')?.addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeNotificationModal();
+      }
+    });
   </script>
 </body>
 </html>

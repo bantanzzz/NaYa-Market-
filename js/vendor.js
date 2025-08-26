@@ -1,6 +1,6 @@
 // 🔸 Firebase SDKs
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, limit, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, query, orderBy, limit, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -48,6 +48,8 @@ let filteredProducts = [];
 let isLoading = false;
 let currentUser = null;
 let currentCategoryFilter = 'All';
+let notificationListener = null;
+let lastNotificationTime = 0;
 
 // 🔸 UI Elements
 let authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn;
@@ -137,6 +139,7 @@ function showAuthSection() {
   userEmail.classList.add('hidden');
   userEmailMobile.classList.add('hidden');
   logoutBtn.classList.add('hidden');
+  if (notificationSettingsBtn) notificationSettingsBtn.classList.add('hidden');
 }
 
 function showVendorDashboard() {
@@ -145,6 +148,7 @@ function showVendorDashboard() {
   userEmail.classList.remove('hidden');
   userEmailMobile.classList.remove('hidden');
   logoutBtn.classList.remove('hidden');
+  if (notificationSettingsBtn) notificationSettingsBtn.classList.remove('hidden');
 }
 
 function updateUserInfo(user) {
@@ -377,6 +381,202 @@ async function loadProducts() {
   }
 }
 
+// 🔸 Notification Functions
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('This browser does not support notifications');
+    return false;
+  }
+
+  if (Notification.permission === 'granted') {
+    return true;
+  }
+
+  if (Notification.permission !== 'denied') {
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  }
+
+  return false;
+}
+
+function showNotification(title, body, icon = null) {
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(title, {
+      body: body,
+      icon: icon || 'https://via.placeholder.com/64x64/10b981/ffffff?text=📢',
+      badge: 'https://via.placeholder.com/32x32/10b981/ffffff?text=🔔',
+      tag: 'naya-market-notification',
+      requireInteraction: false,
+      silent: false
+    });
+
+    // Auto-close notification after 5 seconds
+    setTimeout(() => {
+      notification.close();
+    }, 5000);
+
+    // Play notification sound if enabled
+    if (soundToggle?.checked) {
+      playNotificationSound();
+    }
+
+    return notification;
+  }
+}
+
+function playNotificationSound() {
+  try {
+    // Create audio context for notification sound
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (error) {
+    console.log('Could not play notification sound:', error);
+  }
+}
+
+function startProductNotifications() {
+  if (notificationListener) {
+    notificationListener(); // Stop existing listener
+  }
+
+  if (!currentUser) return;
+
+  console.log('Starting real-time product notifications...');
+
+  // Listen for new products from other vendors
+  const productsQuery = query(
+    collection(db, "vendors"),
+    orderBy("createdAt", "desc"),
+    limit(50)
+  );
+
+  notificationListener = onSnapshot(productsQuery, (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      if (change.type === 'added') {
+        const newProduct = change.doc.data();
+        const productTime = newProduct.createdAt?.toDate?.() || new Date();
+        
+        // Only notify for products from other vendors and recent ones (last 30 seconds)
+        if (newProduct.vendorId !== currentUser.uid && 
+            productTime > new Date(Date.now() - 30000)) {
+          
+          console.log('New product detected from another vendor:', newProduct.name);
+          
+          // Show browser notification if enabled
+          if (Notification.permission === 'granted') {
+            showNotification(
+              '🆕 New Product Available!',
+              `${newProduct.name} - ${newProduct.category} for Le ${newProduct.price}`,
+              newProduct.image
+            );
+          }
+
+          // Show in-app notification if enabled
+          if (inAppToggle?.checked) {
+            showInAppNotification(newProduct);
+          }
+        }
+      }
+    });
+  }, (error) => {
+    console.error('Error listening for product notifications:', error);
+  });
+}
+
+function showInAppNotification(product) {
+  // Create notification element
+  const notification = document.createElement('div');
+  notification.className = 'fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm transform translate-x-full transition-transform duration-300';
+  notification.innerHTML = `
+    <div class="flex items-start gap-3">
+      <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
+      <div class="flex-1">
+        <h4 class="font-semibold">🆕 New Product!</h4>
+        <p class="text-sm">${product.name}</p>
+        <p class="text-xs opacity-90">${product.category} • Le ${product.price}</p>
+        <p class="text-xs opacity-75">${product.location}</p>
+      </div>
+      <button onclick="this.parentElement.parentElement.remove()" class="text-white opacity-70 hover:opacity-100">
+        ✕
+      </button>
+    </div>
+  `;
+
+  // Add to page
+  document.body.appendChild(notification);
+
+  // Animate in
+  setTimeout(() => {
+    notification.classList.remove('translate-x-full');
+  }, 100);
+
+  // Auto-remove after 8 seconds
+  setTimeout(() => {
+    notification.classList.add('translate-x-full');
+    setTimeout(() => {
+      if (notification.parentElement) {
+        notification.remove();
+      }
+    }, 300);
+  }, 8000);
+}
+
+function stopProductNotifications() {
+  if (notificationListener) {
+    notificationListener();
+    notificationListener = null;
+    console.log('Stopped product notifications');
+  }
+}
+
+// 🔸 Notification Settings Functions
+function updateNotificationButton() {
+  if (Notification.permission === 'granted') {
+    enableNotificationsBtn.textContent = 'Enabled ✓';
+    enableNotificationsBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+    enableNotificationsBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+    enableNotificationsBtn.disabled = true;
+  } else {
+    enableNotificationsBtn.textContent = 'Enable';
+    enableNotificationsBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+    enableNotificationsBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+    enableNotificationsBtn.disabled = false;
+  }
+}
+
+function loadNotificationPreferences() {
+  // Load saved preferences from localStorage
+  const soundEnabled = localStorage.getItem('naya-notifications-sound') !== 'false';
+  const inAppEnabled = localStorage.getItem('naya-notifications-inapp') !== 'false';
+  
+  if (soundToggle) soundToggle.checked = soundEnabled;
+  if (inAppToggle) inAppToggle.checked = inAppEnabled;
+}
+
+function saveNotificationPreferences() {
+  if (soundToggle) {
+    localStorage.setItem('naya-notifications-sound', soundToggle.checked);
+  }
+  if (inAppToggle) {
+    localStorage.setItem('naya-notifications-inapp', inAppToggle.checked);
+  }
+}
+
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM loaded, Firebase already initialized...');
@@ -387,6 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
   userEmail = document.getElementById('userEmail');
   userEmailMobile = document.getElementById('userEmailMobile');
   logoutBtn = document.getElementById('logoutBtn');
+  const notificationSettingsBtn = document.getElementById('notificationSettingsBtn');
   
   // Get form elements
   const loginFormElement = document.getElementById('loginFormElement');
@@ -406,9 +607,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const imagePreview = document.getElementById('imagePreview');
   const previewImg = document.getElementById('previewImg');
   
+  // Notification settings elements
+  const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+  const soundToggle = document.getElementById('soundToggle');
+  const inAppToggle = document.getElementById('inAppToggle');
+  
   console.log('UI elements found:', {
     authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn,
-    loginFormElement, signupFormElement, addProductForm
+    loginFormElement, signupFormElement, addProductForm, notificationSettingsBtn
   });
 
   // 🔸 Set up authentication state listener
@@ -420,12 +626,22 @@ document.addEventListener('DOMContentLoaded', () => {
       showVendorDashboard();
       updateUserInfo(user);
       loadProducts(); // Load user's products
+      
+      // Start notifications for new products
+      requestNotificationPermission().then(permission => {
+        if (permission) {
+          startProductNotifications();
+        }
+      });
     } else {
       console.log('User is signed out');
       showAuthSection();
       updateUserInfo(null);
       products = []; // Clear products
       renderProducts();
+      
+      // Stop notifications
+      stopProductNotifications();
     }
   });
 
@@ -434,8 +650,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const result = await signOutUser();
     if (result.success) {
       console.log('User logged out successfully');
+      // Notifications will be stopped by auth state listener
     } else {
       alert('Error logging out: ' + result.error);
+    }
+  });
+
+  // 🔸 Set up notification settings button
+  notificationSettingsBtn?.addEventListener('click', () => {
+    if (typeof window.openNotificationModal === 'function') {
+      window.openNotificationModal();
     }
   });
 
@@ -839,6 +1063,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
+  }
+
+  // 🔸 Notification Settings
+  enableNotificationsBtn?.addEventListener('click', () => {
+    requestNotificationPermission().then(permission => {
+      if (permission) {
+        updateNotificationButton();
+        saveNotificationPreferences();
+        startProductNotifications(); // Restart notifications with new preferences
+      } else {
+        alert('Notification permission denied. You can enable it in your browser settings.');
+        updateNotificationButton();
+        saveNotificationPreferences();
+      }
+    });
+  });
+
+  soundToggle?.addEventListener('change', () => {
+    saveNotificationPreferences();
+    if (soundToggle.checked) {
+      startProductNotifications(); // Restart notifications with new preferences
+    } else {
+      stopProductNotifications();
+    }
+  });
+
+  inAppToggle?.addEventListener('change', () => {
+    saveNotificationPreferences();
+    if (inAppToggle.checked) {
+      startProductNotifications(); // Restart notifications with new preferences
+    } else {
+      stopProductNotifications();
+    }
+  });
+
+  loadNotificationPreferences(); // Load saved preferences on page load
+  
+  // Update notification button state on page load
+  updateNotificationButton();
+  
+  // Listen for notification permission changes
+  if ('Notification' in window) {
+    // Check permission every 5 seconds (for when user changes it in browser settings)
+    setInterval(() => {
+      updateNotificationButton();
+    }, 5000);
   }
 
   console.log('Vendor page initialized with authentication and responsive design');
