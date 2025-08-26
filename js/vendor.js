@@ -45,6 +45,7 @@ try {
 // 🔸 Performance optimizations
 let products = [];
 let filteredProducts = [];
+let allMarketProducts = []; // Store all products from all vendors
 let isLoading = false;
 let currentUser = null;
 let currentCategoryFilter = 'All';
@@ -246,7 +247,7 @@ function renderProducts() {
   productList.innerHTML = '';
   
   // Use filtered products if available, otherwise use all products
-  const productsToRender = filteredProducts.length > 0 ? filteredProducts : products;
+  const productsToRender = filteredProducts.length > 0 ? filteredProducts : [];
   
   if (productsToRender.length === 0) {
     noProductsMsg.style.display = '';
@@ -276,9 +277,6 @@ function renderProducts() {
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
         WhatsApp
       </a>
-      <button onclick="deleteProduct(${idx})" class="absolute top-3 right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow" title="Delete">
-        <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>
-      </button>
     `;
     
     fragment.appendChild(card);
@@ -293,6 +291,52 @@ function renderProducts() {
   if (window.updateProductCount) {
     window.updateProductCount(productsToRender.length);
   }
+}
+
+// 🔸 Render user's own products separately
+function renderUserProducts() {
+  const userProductList = document.getElementById('userProductList');
+  const noUserProductsMsg = document.getElementById('noUserProductsMsg');
+  const userProductCount = document.getElementById('userProductCount');
+  
+  if (!userProductList) return;
+  
+  userProductList.innerHTML = '';
+  
+  if (products.length === 0) {
+    noUserProductsMsg.style.display = '';
+    userProductCount.textContent = '0 products';
+    return;
+  }
+  
+  noUserProductsMsg.style.display = 'none';
+  userProductCount.textContent = `${products.length} product${products.length !== 1 ? 's' : ''}`;
+  
+  // Use DocumentFragment for better performance
+  const fragment = document.createDocumentFragment();
+  
+  products.forEach((product, idx) => {
+    const card = document.createElement('div');
+    card.className = 'product-card bg-white rounded-xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition relative';
+    card.innerHTML = `
+      <img src="${product.image}" alt="Product" class="w-28 h-28 object-cover rounded-full mb-4 border-4 border-green-100 shadow" loading="lazy" onerror="this.src='https://via.placeholder.com/112x112?text=Image+Error'">
+      <h2 class="text-xl font-bold mb-1 text-green-700 text-center">${product.name}</h2>
+      <p class="text-gray-500 mb-1 text-sm text-center">${product.category} <span class="mx-1">•</span> ${product.location}</p>
+      <p class="text-gray-500 mb-1 text-sm font-semibold">Le ${product.price}</p>
+      <p class="text-gray-600 text-sm mb-3 text-center hidden description">${product.description || 'No description available'}</p>
+      <button class="text-green-600 text-sm font-medium mb-3 show-description hover:text-green-800 transition">Show Description</button>
+      <button onclick="deleteProduct(${idx})" class="absolute top-3 right-3 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow" title="Delete">
+        <svg xmlns='http://www.w3.org/2000/svg' class='h-4 w-4' fill='none' viewBox='0 0 24 24' stroke='currentColor'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 18L18 6M6 6l12 12'/></svg>
+      </button>
+    `;
+    
+    fragment.appendChild(card);
+  });
+  
+  userProductList.appendChild(fragment);
+  
+  // Setup description toggles for user products
+  setupDescriptionToggles();
 }
 
 // 🔸 Setup description toggle functionality
@@ -326,10 +370,17 @@ function setupDescriptionToggles() {
 
 // 🔸 Filter products by category
 function filterProductsByCategory(category) {
+  console.log(`Filtering by category: ${category}`);
+  console.log(`Total market products: ${allMarketProducts.length}`);
+  
   if (category === 'All') {
-    filteredProducts = [...products];
+    // Show all market products
+    filteredProducts = [...allMarketProducts];
+    console.log(`Showing all products: ${filteredProducts.length}`);
   } else {
-    filteredProducts = products.filter(product => product.category === category);
+    // Filter market products by category
+    filteredProducts = allMarketProducts.filter(product => product.category === category);
+    console.log(`Filtered ${category} products: ${filteredProducts.length}`);
   }
   
   // Update filter status text
@@ -353,28 +404,58 @@ async function loadProducts() {
     isLoading = true;
     console.log('Loading products from Firebase for user:', currentUser.uid);
     
-    // Load products for the current user only
-    const q = query(
+    // Load products for the current user only (for their dashboard)
+    const userProductsQuery = query(
       collection(db, "vendors"), 
       where("vendorId", "==", currentUser.uid),
       orderBy("createdAt", "desc")
     );
-    const querySnapshot = await getDocs(q);
+    const userQuerySnapshot = await getDocs(userProductsQuery);
+    
+    // Load ALL products for filtering and display (market view)
+    const allProductsQuery = query(
+      collection(db, "vendors"),
+      orderBy("createdAt", "desc")
+    );
+    const allQuerySnapshot = await getDocs(allProductsQuery);
+    
+    // Set user's products for their dashboard
     products = [];
-    querySnapshot.forEach((doc) => {
+    userQuerySnapshot.forEach((doc) => {
       const product = doc.data();
       product.id = doc.id; // Store document ID for deletion
       products.push(product);
     });
     
-    console.log(`Loaded ${products.length} products from Firebase for user`);
-    // Initialize filtered products with all products
-    filteredProducts = [...products];
-    renderProducts();
+    // Set all products for filtering
+    allMarketProducts = [];
+    allQuerySnapshot.forEach((doc) => {
+      const product = doc.data();
+      product.id = doc.id;
+      allMarketProducts.push(product);
+      console.log(`Loaded market product: ${product.name} - ${product.category}`);
+    });
+    
+    console.log(`Loaded ${products.length} user products and ${allMarketProducts.length} total products from Firebase`);
+    
+    // Initialize filtered products with all products (market view)
+    filteredProducts = [...allMarketProducts];
+    console.log(`Initialized filteredProducts with ${filteredProducts.length} products`);
+    
+    // Apply current filter if one is selected
+    if (currentCategoryFilter !== 'All') {
+      filterProductsByCategory(currentCategoryFilter);
+    } else {
+      renderProducts();
+    }
+    
+    // Always render user's own products
+    renderUserProducts();
     
   } catch (error) {
     console.error("Error loading products: ", error);
     products = [];
+    filteredProducts = [];
     renderProducts();
   } finally {
     isLoading = false;
@@ -388,45 +469,68 @@ async function requestNotificationPermission() {
     return false;
   }
 
-  if (Notification.permission === 'granted') {
-    return true;
-  }
+  try {
+    if (Notification.permission === 'granted') {
+      console.log('Notification permission already granted');
+      return true;
+    }
 
-  if (Notification.permission !== 'denied') {
-    const permission = await Notification.requestPermission();
-    return permission === 'granted';
-  }
+    if (Notification.permission !== 'denied') {
+      console.log('Requesting notification permission...');
+      const permission = await Notification.requestPermission();
+      console.log('Notification permission result:', permission);
+      return permission === 'granted';
+    }
 
-  return false;
+    console.log('Notification permission denied by user');
+    return false;
+  } catch (error) {
+    console.error('Error requesting notification permission:', error);
+    return false;
+  }
 }
 
 function showNotification(title, body, icon = null) {
-  if (Notification.permission === 'granted') {
-    const notification = new Notification(title, {
-      body: body,
-      icon: icon || 'https://via.placeholder.com/64x64/10b981/ffffff?text=📢',
-      badge: 'https://via.placeholder.com/32x32/10b981/ffffff?text=🔔',
-      tag: 'naya-market-notification',
-      requireInteraction: false,
-      silent: false
-    });
+  try {
+    if (Notification.permission === 'granted') {
+      console.log('Showing browser notification:', title, body);
+      
+      const notification = new Notification(title, {
+        body: body,
+        icon: icon || 'https://via.placeholder.com/64x64/10b981/ffffff?text=📢',
+        badge: 'https://via.placeholder.com/32x32/10b981/ffffff?text=🔔',
+        tag: 'naya-market-notification',
+        requireInteraction: false,
+        silent: false
+      });
 
-    // Auto-close notification after 5 seconds
-    setTimeout(() => {
-      notification.close();
-    }, 5000);
+      // Auto-close notification after 5 seconds
+      setTimeout(() => {
+        try {
+          notification.close();
+        } catch (error) {
+          console.log('Error closing notification:', error);
+        }
+      }, 5000);
 
-    // Play notification sound if enabled
-    if (soundToggle?.checked) {
-      playNotificationSound();
+      // Play notification sound if enabled
+      if (soundToggle?.checked) {
+        playNotificationSound();
+      }
+
+      return notification;
+    } else {
+      console.log('Cannot show notification - permission not granted');
     }
-
-    return notification;
+  } catch (error) {
+    console.error('Error showing notification:', error);
   }
 }
 
 function playNotificationSound() {
   try {
+    console.log('Playing notification sound...');
+    
     // Create audio context for notification sound
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
@@ -444,96 +548,139 @@ function playNotificationSound() {
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 0.3);
+    
+    console.log('Notification sound played successfully');
   } catch (error) {
     console.log('Could not play notification sound:', error);
   }
 }
 
 function startProductNotifications() {
-  if (notificationListener) {
-    notificationListener(); // Stop existing listener
-  }
+  try {
+    if (notificationListener) {
+      console.log('Stopping existing notification listener...');
+      notificationListener(); // Stop existing listener
+    }
 
-  if (!currentUser) return;
+    if (!currentUser) {
+      console.log('Cannot start notifications - no user logged in');
+      return;
+    }
 
-  console.log('Starting real-time product notifications...');
+    console.log('Starting real-time product notifications for user:', currentUser.uid);
 
-  // Listen for new products from other vendors
-  const productsQuery = query(
-    collection(db, "vendors"),
-    orderBy("createdAt", "desc"),
-    limit(50)
-  );
+    // Listen for new products from other vendors
+    const productsQuery = query(
+      collection(db, "vendors"),
+      orderBy("createdAt", "desc"),
+      limit(50)
+    );
 
-  notificationListener = onSnapshot(productsQuery, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === 'added') {
-        const newProduct = change.doc.data();
-        const productTime = newProduct.createdAt?.toDate?.() || new Date();
-        
-        // Only notify for products from other vendors and recent ones (last 30 seconds)
-        if (newProduct.vendorId !== currentUser.uid && 
-            productTime > new Date(Date.now() - 30000)) {
+    notificationListener = onSnapshot(productsQuery, (snapshot) => {
+      console.log('Notification listener triggered, checking for new products...');
+      
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added') {
+          const newProduct = change.doc.data();
+          const productTime = newProduct.createdAt?.toDate?.() || new Date();
+          const currentTime = new Date();
+          const timeDifference = currentTime - productTime;
           
-          console.log('New product detected from another vendor:', newProduct.name);
+          console.log('New product detected:', {
+            name: newProduct.name,
+            vendorId: newProduct.vendorId,
+            currentUserId: currentUser.uid,
+            productTime: productTime,
+            currentTime: currentTime,
+            timeDifference: timeDifference,
+            isRecent: timeDifference < 30000
+          });
           
-          // Show browser notification if enabled
-          if (Notification.permission === 'granted') {
-            showNotification(
-              '🆕 New Product Available!',
-              `${newProduct.name} - ${newProduct.category} for Le ${newProduct.price}`,
-              newProduct.image
-            );
-          }
+          // Only notify for products from other vendors and recent ones (last 30 seconds)
+          if (newProduct.vendorId !== currentUser.uid && timeDifference < 30000) {
+            
+            console.log('✅ Triggering notification for new product from another vendor:', newProduct.name);
+            
+            // Show browser notification if enabled
+            if (Notification.permission === 'granted') {
+              showNotification(
+                '🆕 New Product Available!',
+                `${newProduct.name} - ${newProduct.category} for Le ${newProduct.price}`,
+                newProduct.image
+              );
+            } else {
+              console.log('Browser notifications not enabled');
+            }
 
-          // Show in-app notification if enabled
-          if (inAppToggle?.checked) {
-            showInAppNotification(newProduct);
+            // Show in-app notification if enabled
+            if (inAppToggle?.checked) {
+              showInAppNotification(newProduct);
+            } else {
+              console.log('In-app notifications not enabled');
+            }
+          } else {
+            if (newProduct.vendorId === currentUser.uid) {
+              console.log('Skipping notification - product is from current user');
+            } else {
+              console.log('Skipping notification - product is too old (', timeDifference, 'ms)');
+            }
           }
         }
-      }
+      });
+    }, (error) => {
+      console.error('Error listening for product notifications:', error);
     });
-  }, (error) => {
-    console.error('Error listening for product notifications:', error);
-  });
+
+    console.log('Product notifications started successfully');
+  } catch (error) {
+    console.error('Error starting product notifications:', error);
+  }
 }
 
 function showInAppNotification(product) {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = 'fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm transform translate-x-full transition-transform duration-300';
-  notification.innerHTML = `
-    <div class="flex items-start gap-3">
-      <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
-      <div class="flex-1">
-        <h4 class="font-semibold">🆕 New Product!</h4>
-        <p class="text-sm">${product.name}</p>
-        <p class="text-xs opacity-90">${product.category} • Le ${product.price}</p>
-        <p class="text-xs opacity-75">${product.location}</p>
+  try {
+    console.log('Showing in-app notification for:', product.name);
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm transform translate-x-full transition-transform duration-300';
+    notification.innerHTML = `
+      <div class="flex items-start gap-3">
+        <img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded">
+        <div class="flex-1">
+          <h4 class="font-semibold">🆕 New Product!</h4>
+          <p class="text-sm">${product.name}</p>
+          <p class="text-xs opacity-90">${product.category} • Le ${product.price}</p>
+          <p class="text-xs opacity-75">${product.location}</p>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-white opacity-70 hover:opacity-100">
+          ✕
+        </button>
       </div>
-      <button onclick="this.parentElement.parentElement.remove()" class="text-white opacity-70 hover:opacity-100">
-        ✕
-      </button>
-    </div>
-  `;
+    `;
 
-  // Add to page
-  document.body.appendChild(notification);
+    // Add to page
+    document.body.appendChild(notification);
 
-  // Animate in
-  setTimeout(() => {
-    notification.classList.remove('translate-x-full');
-  }, 100);
-
-  // Auto-remove after 8 seconds
-  setTimeout(() => {
-    notification.classList.add('translate-x-full');
+    // Animate in
     setTimeout(() => {
-      if (notification.parentElement) {
-        notification.remove();
-      }
-    }, 300);
-  }, 8000);
+      notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto-remove after 8 seconds
+    setTimeout(() => {
+      notification.classList.add('translate-x-full');
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 300);
+    }, 8000);
+    
+    console.log('In-app notification displayed successfully');
+  } catch (error) {
+    console.error('Error showing in-app notification:', error);
+  }
 }
 
 function stopProductNotifications() {
@@ -546,34 +693,111 @@ function stopProductNotifications() {
 
 // 🔸 Notification Settings Functions
 function updateNotificationButton() {
-  if (Notification.permission === 'granted') {
-    enableNotificationsBtn.textContent = 'Enabled ✓';
-    enableNotificationsBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
-    enableNotificationsBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
-    enableNotificationsBtn.disabled = true;
-  } else {
-    enableNotificationsBtn.textContent = 'Enable';
-    enableNotificationsBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
-    enableNotificationsBtn.classList.add('bg-green-500', 'hover:bg-green-600');
-    enableNotificationsBtn.disabled = false;
+  try {
+    const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+    if (!enableNotificationsBtn) {
+      console.log('Enable notifications button not found');
+      return;
+    }
+
+    if (Notification.permission === 'granted') {
+      console.log('Updating notification button to show enabled state');
+      enableNotificationsBtn.textContent = 'Enabled ✓';
+      enableNotificationsBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+      enableNotificationsBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+      enableNotificationsBtn.disabled = true;
+    } else {
+      console.log('Updating notification button to show enable state');
+      enableNotificationsBtn.textContent = 'Enable';
+      enableNotificationsBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+      enableNotificationsBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+      enableNotificationsBtn.disabled = false;
+    }
+  } catch (error) {
+    console.error('Error updating notification button:', error);
   }
 }
 
 function loadNotificationPreferences() {
-  // Load saved preferences from localStorage
-  const soundEnabled = localStorage.getItem('naya-notifications-sound') !== 'false';
-  const inAppEnabled = localStorage.getItem('naya-notifications-inapp') !== 'false';
-  
-  if (soundToggle) soundToggle.checked = soundEnabled;
-  if (inAppToggle) inAppToggle.checked = inAppEnabled;
+  try {
+    console.log('Loading notification preferences from localStorage...');
+    
+    // Load saved preferences from localStorage
+    const soundEnabled = localStorage.getItem('naya-notifications-sound') !== 'false';
+    const inAppEnabled = localStorage.getItem('naya-notifications-inapp') !== 'false';
+    
+    console.log('Loaded preferences:', { soundEnabled, inAppEnabled });
+    
+    if (soundToggle) {
+      soundToggle.checked = soundEnabled;
+      console.log('Sound toggle set to:', soundEnabled);
+    }
+    if (inAppToggle) {
+      inAppToggle.checked = inAppEnabled;
+      console.log('In-app toggle set to:', inAppEnabled);
+    }
+  } catch (error) {
+    console.error('Error loading notification preferences:', error);
+  }
 }
 
 function saveNotificationPreferences() {
-  if (soundToggle) {
-    localStorage.setItem('naya-notifications-sound', soundToggle.checked);
+  try {
+    console.log('Saving notification preferences to localStorage...');
+    
+    if (soundToggle) {
+      localStorage.setItem('naya-notifications-sound', soundToggle.checked);
+      console.log('Sound preference saved:', soundToggle.checked);
+    }
+    if (inAppToggle) {
+      localStorage.setItem('naya-notifications-inapp', inAppToggle.checked);
+      console.log('In-app preference saved:', inAppToggle.checked);
+    }
+  } catch (error) {
+    console.error('Error saving notification preferences:', error);
   }
-  if (inAppToggle) {
-    localStorage.setItem('naya-notifications-inapp', inAppToggle.checked);
+}
+
+// 🔸 Test Notification Function
+function testNotification() {
+  try {
+    console.log('🧪 Testing notification system...');
+    
+    // Test browser notification
+    if (Notification.permission === 'granted') {
+      showNotification(
+        '🧪 Test Notification',
+        'This is a test notification to verify the system is working!',
+        'https://via.placeholder.com/64x64/3b82f6/ffffff?text=🧪'
+      );
+    } else {
+      console.log('Browser notifications not enabled for testing');
+    }
+    
+    // Test in-app notification
+    if (inAppToggle?.checked) {
+      const testProduct = {
+        name: 'Test Product',
+        category: 'Test',
+        price: '0',
+        location: 'Test Location',
+        image: 'https://via.placeholder.com/48x48/3b82f6/ffffff?text=🧪'
+      };
+      showInAppNotification(testProduct);
+    } else {
+      console.log('In-app notifications not enabled for testing');
+    }
+    
+    // Test sound
+    if (soundToggle?.checked) {
+      playNotificationSound();
+    } else {
+      console.log('Sound not enabled for testing');
+    }
+    
+    console.log('🧪 Test notification completed');
+  } catch (error) {
+    console.error('Error testing notification:', error);
   }
 }
 
@@ -611,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
   const soundToggle = document.getElementById('soundToggle');
   const inAppToggle = document.getElementById('inAppToggle');
+  const testNotificationBtn = document.getElementById('testNotificationBtn');
   
   console.log('UI elements found:', {
     authSection, vendorDashboard, userEmail, userEmailMobile, logoutBtn,
@@ -626,6 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showVendorDashboard();
       updateUserInfo(user);
       loadProducts(); // Load user's products
+      renderUserProducts(); // Render user's own products
       
       // Start notifications for new products
       requestNotificationPermission().then(permission => {
@@ -639,6 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateUserInfo(null);
       products = []; // Clear products
       renderProducts();
+      renderUserProducts(); // Clear user's own products
       
       // Stop notifications
       stopProductNotifications();
@@ -940,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         renderProducts();
+        renderUserProducts(); // Re-render user products to show the new one
         addProductForm.reset();
         imagePreview.classList.add('hidden');
         alert('Product added successfully! It will appear on the home page.');
@@ -997,6 +1225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     renderProducts();
+    renderUserProducts(); // Re-render user products to show the updated list
   };
 
   // 🔸 Set up category filter buttons
@@ -1110,6 +1339,9 @@ document.addEventListener('DOMContentLoaded', () => {
       updateNotificationButton();
     }, 5000);
   }
+
+  // 🔸 Set up test notification button
+  testNotificationBtn?.addEventListener('click', testNotification);
 
   console.log('Vendor page initialized with authentication and responsive design');
 });
