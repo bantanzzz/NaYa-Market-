@@ -274,16 +274,20 @@ function displaySearchResults() {
 
 // 🔸 Payment app redirect function
 function openPaymentApp(paymentNumber) {
-  // Try to open Maxit app first, then Africell app as fallback
-  const maxitUrl = 'maxit://';
-  const africellUrl = 'africell://';
+  // Direct URL schemes for Maxit and Africell apps
+  const maxitUrl = 'maxit://pay';
+  const africellUrl = 'africell://pay';
+  
+  // Alternative URL schemes if the above don't work
+  const maxitAltUrl = 'maxit://';
+  const africellAltUrl = 'africell://';
   
   // Create a temporary link to test if the app is installed
   const testLink = document.createElement('a');
   testLink.style.display = 'none';
   document.body.appendChild(testLink);
   
-  // Try Maxit first
+  // Try Maxit first with direct pay URL
   testLink.href = maxitUrl;
   testLink.click();
   
@@ -292,16 +296,29 @@ function openPaymentApp(paymentNumber) {
     testLink.href = africellUrl;
     testLink.click();
     
-    // If neither app works, show a message
+    // If direct pay URLs don't work, try alternative URLs
     setTimeout(() => {
-      alert('Please install Maxit or Africell app to make payments, or contact the vendor directly via WhatsApp.');
-    }, 1000);
+      testLink.href = maxitAltUrl;
+      testLink.click();
+      
+      setTimeout(() => {
+        testLink.href = africellAltUrl;
+        testLink.click();
+        
+        // If neither app works, show a message
+        setTimeout(() => {
+          alert('Please install Maxit or Africell app to make payments, or contact the vendor directly via WhatsApp.');
+        }, 1000);
+      }, 500);
+    }, 500);
   }, 500);
   
   // Clean up
   setTimeout(() => {
-    document.body.removeChild(testLink);
-  }, 2000);
+    if (document.body.contains(testLink)) {
+      document.body.removeChild(testLink);
+    }
+  }, 3000);
 }
 
 // Make function globally available
