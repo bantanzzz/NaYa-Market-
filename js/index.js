@@ -67,7 +67,7 @@ function createProductCard(product) {
     <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
     <p class="text-gray-600 text-sm mb-2 hidden description">${product.description || 'No description available'}</p>
     <button class="text-green-600 text-sm font-medium mb-2 show-description hover:text-green-800 transition">Show Description</button>
-    <button onclick="openPaymentApp('${product.paymentNumber || ''}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
+    <button onclick="openPaymentApp('${product.paymentNumber || ''}', '${product.price}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
       Buy Now
     </button>
@@ -272,53 +272,43 @@ function displaySearchResults() {
   }
 }
 
-// 🔸 Payment app redirect function
-function openPaymentApp(paymentNumber) {
-  // Direct URL schemes for Maxit and Africell apps
-  const maxitUrl = 'maxit://pay';
-  const africellUrl = 'africell://pay';
+// 🔸 Payment function to open phone dialer with USSD code
+function openPaymentApp(paymentNumber, productPrice) {
+  // Clean the payment number (remove any non-digit characters except +)
+  let cleanNumber = paymentNumber.replace(/[^\d+]/g, '');
   
-  // Alternative URL schemes if the above don't work
-  const maxitAltUrl = 'maxit://';
-  const africellAltUrl = 'africell://';
+  // Remove country code if present (232 for Sierra Leone)
+  if (cleanNumber.startsWith('+232')) {
+    cleanNumber = cleanNumber.substring(4);
+  } else if (cleanNumber.startsWith('232')) {
+    cleanNumber = cleanNumber.substring(3);
+  }
   
-  // Create a temporary link to test if the app is installed
-  const testLink = document.createElement('a');
-  testLink.style.display = 'none';
-  document.body.appendChild(testLink);
+  // Ensure the number is 8 digits (Sierra Leone mobile format)
+  if (cleanNumber.length !== 8) {
+    alert('Invalid vendor payment number. Please contact the vendor directly via WhatsApp.');
+    return;
+  }
   
-  // Try Maxit first with direct pay URL
-  testLink.href = maxitUrl;
-  testLink.click();
+  // Format the USSD code: *144*2*vendorNumber*amount#
+  const ussdCode = `*144*2*${cleanNumber}*${productPrice}#`;
   
-  // If Maxit doesn't work, try Africell after a short delay
-  setTimeout(() => {
-    testLink.href = africellUrl;
-    testLink.click();
-    
-    // If direct pay URLs don't work, try alternative URLs
-    setTimeout(() => {
-      testLink.href = maxitAltUrl;
-      testLink.click();
-      
-      setTimeout(() => {
-        testLink.href = africellAltUrl;
-        testLink.click();
-        
-        // If neither app works, show a message
-        setTimeout(() => {
-          alert('Please install Maxit or Africell app to make payments, or contact the vendor directly via WhatsApp.');
-        }, 1000);
-      }, 500);
-    }, 500);
-  }, 500);
+  // Open phone dialer with the USSD code
+  const phoneUrl = `tel:${ussdCode}`;
+  
+  // Create and click the phone link
+  const phoneLink = document.createElement('a');
+  phoneLink.href = phoneUrl;
+  phoneLink.style.display = 'none';
+  document.body.appendChild(phoneLink);
+  phoneLink.click();
   
   // Clean up
   setTimeout(() => {
-    if (document.body.contains(testLink)) {
-      document.body.removeChild(testLink);
+    if (document.body.contains(phoneLink)) {
+      document.body.removeChild(phoneLink);
     }
-  }, 3000);
+  }, 1000);
 }
 
 // Make function globally available
