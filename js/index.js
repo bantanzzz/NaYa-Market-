@@ -67,10 +67,10 @@ function createProductCard(product) {
     <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
     <p class="text-gray-600 text-sm mb-2 hidden description">${product.description || 'No description available'}</p>
     <button class="text-green-600 text-sm font-medium mb-2 show-description hover:text-green-800 transition">Show Description</button>
-    <a href="${product.paymentNumber ? 'tel:*144*2*1*' + product.paymentNumber + '#' : 'tel:*144*2*1#'}" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow">
+    <button onclick="openPaymentApp('${product.paymentNumber || ''}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
       Buy Now
-    </a>
+    </button>
     <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-${colorClass}-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-${colorClass}-600 transition shadow">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
       WhatsApp
@@ -271,6 +271,41 @@ function displaySearchResults() {
     renderProducts(filteredResults, vendorsContainer);
   }
 }
+
+// 🔸 Payment app redirect function
+function openPaymentApp(paymentNumber) {
+  // Try to open Maxit app first, then Africell app as fallback
+  const maxitUrl = 'maxit://';
+  const africellUrl = 'africell://';
+  
+  // Create a temporary link to test if the app is installed
+  const testLink = document.createElement('a');
+  testLink.style.display = 'none';
+  document.body.appendChild(testLink);
+  
+  // Try Maxit first
+  testLink.href = maxitUrl;
+  testLink.click();
+  
+  // If Maxit doesn't work, try Africell after a short delay
+  setTimeout(() => {
+    testLink.href = africellUrl;
+    testLink.click();
+    
+    // If neither app works, show a message
+    setTimeout(() => {
+      alert('Please install Maxit or Africell app to make payments, or contact the vendor directly via WhatsApp.');
+    }, 1000);
+  }, 500);
+  
+  // Clean up
+  setTimeout(() => {
+    document.body.removeChild(testLink);
+  }, 2000);
+}
+
+// Make function globally available
+window.openPaymentApp = openPaymentApp;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
