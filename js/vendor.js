@@ -269,11 +269,15 @@ function renderProducts() {
       <p class="text-gray-500 mb-1 text-sm font-semibold">Le ${product.price}</p>
       <p class="text-gray-600 text-sm mb-3 text-center hidden description">${product.description || 'No description available'}</p>
       <button class="text-green-600 text-sm font-medium mb-3 show-description hover:text-green-800 transition">Show Description</button>
+      <button onclick="addToCart('${product.id}', '${product.name}', '${product.price}', '${product.category}', '${product.location}', '${product.image}', '${product.vendorEmail || ''}', '${product.whatsapp}', '${product.paymentNumber || ''}')" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
+        Add to Cart
+      </button>
       <button onclick="openPaymentApp('${product.paymentNumber || ''}', '${product.price}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
         Buy Now
       </button>
-      <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
+      <a href="https://wa.me/${product.whatsapp}" target="_blank" class="mt-3 bg-purple-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-purple-600 transition shadow w-full justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.72 11.06a6.5 6.5 0 10-5.66 5.66l2.12-2.12a1 1 0 01.7-.29h.01a1 1 0 01.7.29l2.12 2.12a6.5 6.5 0 00.01-5.66z" /></svg>
         WhatsApp
       </a>
@@ -840,8 +844,76 @@ function openPaymentApp(paymentNumber, productPrice) {
   }, 1000);
 }
 
-// Make function globally available
+// 🔸 Global add to cart function
+function addToCart(id, name, price, category, location, image, vendorEmail, whatsapp, paymentNumber) {
+  const product = {
+    id: id || Date.now().toString(),
+    name,
+    price: parseFloat(price),
+    category,
+    location,
+    image,
+    vendorEmail,
+    whatsapp,
+    paymentNumber
+  };
+  
+  // Simple cart management for vendor page
+  try {
+    const existingCart = JSON.parse(localStorage.getItem('naya-market-cart') || '[]');
+    const existingItem = existingCart.find(item => item.id === product.id);
+    
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      existingCart.push({...product, quantity: 1});
+    }
+    
+    localStorage.setItem('naya-market-cart', JSON.stringify(existingCart));
+    
+    // Show notification
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-20 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-sm transform translate-x-full transition-transform duration-300';
+    notification.innerHTML = `
+      <div class="flex items-center gap-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        <div>
+          <p class="font-semibold">Added to cart!</p>
+          <p class="text-sm opacity-90">${product.name}</p>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" class="text-white opacity-70 hover:opacity-100 ml-2">
+          ✕
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(() => {
+      notification.classList.remove('translate-x-full');
+    }, 100);
+
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      notification.classList.add('translate-x-full');
+      setTimeout(() => {
+        if (notification.parentElement) {
+          notification.remove();
+        }
+      }, 300);
+    }, 3000);
+    
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+  }
+}
+
+// Make functions globally available
 window.openPaymentApp = openPaymentApp;
+window.addToCart = addToCart;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
