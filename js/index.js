@@ -242,15 +242,18 @@ async function performDatabaseSearch(searchTerm) {
   }
 }
 
-// 🔸 Display search results
+// 🔸 Display search results with category filtering
 function displaySearchResults() {
   const vendorsContainer = document.getElementById('vendors');
   const selectedCategory = document.querySelector('.category-btn.ring')?.getAttribute('data-category') || 'All';
   
+  // Use search results if available, otherwise use current products
+  let baseResults = searchResults.length > 0 ? searchResults : currentProducts;
+  
   // Filter by category if one is selected
-  let filteredResults = searchResults;
+  let filteredResults = baseResults;
   if (selectedCategory !== 'All') {
-    filteredResults = searchResults.filter(product => 
+    filteredResults = baseResults.filter(product => 
       product.category === selectedCategory
     );
   }
@@ -260,11 +263,16 @@ function displaySearchResults() {
   allVendorCards = [];
   
   if (filteredResults.length === 0) {
+    const noResultsMessage = searchResults.length > 0 
+      ? 'No products found matching your search and category filter'
+      : `No products found in the ${selectedCategory} category`;
+      
     vendorsContainer.innerHTML = `
       <div class="col-span-full text-center py-12">
-        <div class="text-gray-400 text-6xl mb-4">🔍</div>
+        <div class="text-gray-400 text-6xl mb-4">${selectedCategory === 'All' ? '🔍' : '📦'}</div>
         <h3 class="text-xl font-semibold text-gray-600 mb-2">No products found</h3>
-        <p class="text-gray-500">Try adjusting your search terms or category filter</p>
+        <p class="text-gray-500">${noResultsMessage}</p>
+        ${selectedCategory !== 'All' ? '<button onclick="clearCategoryFilter()" class="mt-4 text-green-600 hover:text-green-800 font-medium">Show all categories</button>' : ''}
       </div>
     `;
   } else {
@@ -311,8 +319,17 @@ function openPaymentApp(paymentNumber, productPrice) {
   }, 1000);
 }
 
-// Make function globally available
+// 🔸 Clear category filter function
+function clearCategoryFilter() {
+  const allButton = document.querySelector('.category-btn[data-category="All"]');
+  if (allButton) {
+    allButton.click();
+  }
+}
+
+// Make functions globally available
 window.openPaymentApp = openPaymentApp;
+window.clearCategoryFilter = clearCategoryFilter;
 
 // Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -322,17 +339,31 @@ document.addEventListener('DOMContentLoaded', () => {
     // This check is just to demonstrate how it would work
   });
 
-  // Category filter logic
+  // Category filter logic with improved visual feedback
   const categoryButtons = document.querySelectorAll('.category-btn');
   
   categoryButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const selected = btn.getAttribute('data-category');
-      categoryButtons.forEach(b => b.classList.remove('ring', 'ring-2', 'ring-offset-2'));
-      btn.classList.add('ring', 'ring-2', 'ring-offset-2');
       
-      // Apply category filter to current search results
+      // Remove active state from all buttons
+      categoryButtons.forEach(b => {
+        b.classList.remove('ring', 'ring-2', 'ring-offset-2', 'bg-opacity-100');
+        b.classList.add('bg-opacity-50');
+      });
+      
+      // Add active state to selected button
+      btn.classList.add('ring', 'ring-2', 'ring-offset-2', 'bg-opacity-100');
+      btn.classList.remove('bg-opacity-50');
+      
+      // Apply category filter
       displaySearchResults();
+      
+      // Add smooth scroll to vendors section
+      document.getElementById('vendors').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start' 
+      });
     });
   });
 
@@ -342,8 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchTerm = searchInput.value.trim();
     
     if (searchTerm.length === 0) {
-      // Show all products when search is empty
-      searchResults = currentProducts;
+      // Clear search results and show all products with current category filter
+      searchResults = [];
       displaySearchResults();
       return;
     }
@@ -351,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Perform database search
     await performDatabaseSearch(searchTerm);
     
-    // Display results
+    // Display results with current category filter applied
     displaySearchResults();
   }, 300); // 300ms delay for better performance
 
