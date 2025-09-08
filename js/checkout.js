@@ -136,34 +136,36 @@ class CartManager {
 
     cartItemsContainer.innerHTML = this.cart.map(item => `
       <div class="cart-item bg-gray-50 rounded-lg p-4 flex items-center gap-4" data-item-id="${item.id}">
-        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg border-2 border-gray-200" loading="lazy" onerror="this.src='https://via.placeholder.com/64x64?text=Image+Error'">
+        <img src="${item.image}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg border-2 border-gray-200 flex-shrink-0" loading="lazy" onerror="this.src='https://via.placeholder.com/64x64?text=Image+Error'">
         
         <div class="flex-1 min-w-0">
-          <h4 class="font-semibold text-gray-800 truncate">${item.name}</h4>
-          <p class="text-sm text-gray-500">${item.category} • ${item.location}</p>
+          <h4 class="font-semibold text-gray-800 break-words">${item.name}</h4>
+          <p class="text-sm text-gray-500 break-words">${item.category} • ${item.location}</p>
           <p class="text-sm font-medium text-green-600">Le ${item.price.toLocaleString()}</p>
-          ${item.vendorEmail ? `<p class="text-xs text-gray-400">by ${item.vendorEmail}</p>` : ''}
+          ${item.vendorEmail ? `<p class="text-xs text-gray-400 break-words">by ${item.vendorEmail}</p>` : ''}
         </div>
         
-        <div class="flex items-center gap-2">
-          <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-            </svg>
-          </button>
-          <span class="w-8 text-center font-medium">${item.quantity}</span>
-          <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="text-right">
-          <p class="font-semibold text-gray-800">Le ${(item.price * item.quantity).toLocaleString()}</p>
-          <button onclick="cartManager.removeItem('${item.id}')" class="text-red-500 hover:text-red-700 text-sm mt-1">
-            Remove
-          </button>
+        <div class="flex flex-col items-end gap-2">
+          <div class="flex items-center gap-2">
+            <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+              </svg>
+            </button>
+            <span class="w-8 text-center font-medium">${item.quantity}</span>
+            <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="text-right">
+            <p class="font-semibold text-gray-800 text-sm">Le ${(item.price * item.quantity).toLocaleString()}</p>
+            <button onclick="cartManager.removeItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs mt-1">
+              Remove
+            </button>
+          </div>
         </div>
       </div>
     `).join('');
