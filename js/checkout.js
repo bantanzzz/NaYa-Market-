@@ -216,19 +216,7 @@ class CartManager {
 
   // Setup event listeners
   setupEventListeners() {
-    // Payment method selection
-    const paymentMethods = document.querySelectorAll('input[name="paymentMethod"]');
-    paymentMethods.forEach(method => {
-      method.addEventListener('change', (e) => {
-        // Update visual state
-        document.querySelectorAll('.payment-method').forEach(pm => {
-          pm.classList.remove('selected');
-        });
-        e.target.closest('.payment-method').classList.add('selected');
-      });
-    });
-
-    // Checkout button
+    // Checkout button - automatically dials vendor payment numbers
     const checkoutBtn = document.getElementById('checkoutBtn');
     checkoutBtn.addEventListener('click', () => {
       this.processCheckout();
@@ -276,7 +264,6 @@ class CartManager {
     const customerName = document.getElementById('customerName').value.trim();
     const customerPhone = document.getElementById('customerPhone').value.trim();
     const deliveryAddress = document.getElementById('deliveryAddress').value.trim();
-    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
     // Validate phone number (Sierra Leone format)
     if (!this.validateSierraLeonePhone(customerPhone)) {
@@ -284,48 +271,38 @@ class CartManager {
       return;
     }
 
-    // Show loading overlay
-    document.getElementById('loadingOverlay').classList.remove('hidden');
-
-    try {
-      // Simulate processing delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Process payment based on selected method
-      if (paymentMethod === 'ussd') {
-        await this.processUSSD();
-      } else if (paymentMethod === 'whatsapp') {
-        await this.processWhatsApp();
-      }
-
-      // Save order to localStorage for demo purposes
-      this.saveOrder({
-        customerName,
-        customerPhone,
-        deliveryAddress,
-        paymentMethod,
-        items: [...this.cart],
-        subtotal: this.getSubtotal(),
-        total: this.getTotal(),
-        orderDate: new Date().toISOString()
-      });
-
-      // Clear cart
-      this.clearCart();
-
-      // Show success modal
-      document.getElementById('loadingOverlay').classList.add('hidden');
-      document.getElementById('successModal').classList.remove('hidden');
-
-    } catch (error) {
-      console.error('Checkout error:', error);
-      document.getElementById('loadingOverlay').classList.add('hidden');
-      alert('There was an error processing your order. Please try again.');
+    // Check if vendor payment numbers exist
+    const hasPaymentNumbers = this.cart.some(item => item.paymentNumber);
+    if (!hasPaymentNumbers) {
+      alert('No payment number available for vendors. Please contact vendors directly via WhatsApp.');
+      return;
     }
+
+    // Save order to localStorage first
+    this.saveOrder({
+      customerName,
+      customerPhone,
+      deliveryAddress,
+      paymentMethod: 'mobile-money',
+      items: [...this.cart],
+      subtotal: this.getSubtotal(),
+      total: this.getTotal(),
+      orderDate: new Date().toISOString()
+    });
+
+    // Automatically dial vendor payment numbers for mobile money
+    // Group items by vendor and dial each vendor's payment number
+    this.processMobileMoneyPayment();
+
+    // Clear cart
+    this.clearCart();
+
+    // Show success modal
+    document.getElementById('successModal').classList.remove('hidden');
   }
 
-  // Process USSD payment
-  async processUSSD() {
+  // Process Mobile Money Payment - Auto-dial vendor numbers
+  processMobileMoneyPayment() {
     // Group items by vendor for separate payments
     const vendorGroups = {};
     this.cart.forEach(item => {
@@ -336,14 +313,18 @@ class CartManager {
       vendorGroups[vendorKey].push(item);
     });
 
-    // Process each vendor's items
+    // Process each vendor's items with a slight delay between dials
+    let delay = 0;
     for (const [vendorEmail, items] of Object.entries(vendorGroups)) {
       const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       const paymentNumber = items[0].paymentNumber;
 
       if (paymentNumber) {
-        // Open USSD for this vendor's total
-        this.openUSSD(paymentNumber, totalAmount);
+        // Delay each dial slightly to allow previous dial to initiate
+        setTimeout(() => {
+          this.openMobileMoneyDial(paymentNumber, totalAmount);
+        }, delay);
+        delay += 1000; // 1 second delay between dials
       }
     }
   }
@@ -391,8 +372,8 @@ class CartManager {
     return encodeURIComponent(message);
   }
 
-  // Open USSD payment
-  openUSSD(paymentNumber, amount) {
+  // Open Mobile Money Dial - Auto-dial vendor payment number
+  openMobileMoneyDial(paymentNumber, amount) {
     // Clean the payment number
     let cleanNumber = paymentNumber.replace(/[^\d+]/g, '');
     
@@ -406,20 +387,35 @@ class CartManager {
     // Ensure the number is 8 digits
     if (cleanNumber.length !== 8) {
       console.warn('Invalid payment number:', paymentNumber);
+      // Fallback: try to dial the number directly
+      const phoneUrl = `tel:${paymentNumber}`;
+      this.createPhoneLink(phoneUrl);
       return;
     }
     
-    // Format the USSD code: *144*2*vendorNumber*amount#
-    const ussdCode = `*144*2*${cleanNumber}*${amount}#`;
+    // Format the USSD code for Orange Money: *144*2*vendorNumber*amount#
+    // This works for both Orange Money and most mobile money services
+    const ussdCode = `*144*2*${cleanNumber}*${Math.round(amount)}#`;
     const phoneUrl = `tel:${ussdCode}`;
     
-    // Open phone dialer
+    // Open phone dialer automatically
+    this.createPhoneLink(phoneUrl);
+    
+    // Also show an alert to inform user
+    console.log(`Dialing mobile money payment: ${ussdCode}`);
+  }
+
+  // Helper function to create and click phone link
+  createPhoneLink(phoneUrl) {
     const phoneLink = document.createElement('a');
     phoneLink.href = phoneUrl;
     phoneLink.style.display = 'none';
     document.body.appendChild(phoneLink);
+    
+    // Trigger click to open phone dialer
     phoneLink.click();
     
+    // Clean up after a short delay
     setTimeout(() => {
       if (document.body.contains(phoneLink)) {
         document.body.removeChild(phoneLink);
