@@ -2,8 +2,6 @@
 class CartManager {
   constructor() {
     this.cart = this.loadCartFromStorage();
-    this.deliveryFee = 5000; // Le 5,000 delivery fee
-    this.serviceFee = 2000;  // Le 2,000 service fee
     this.init();
   }
 
@@ -113,9 +111,9 @@ class CartManager {
     return this.cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   }
 
-  // Get total with fees
+  // Get total
   getTotal() {
-    return this.getSubtotal() + this.deliveryFee + this.serviceFee;
+    return this.getSubtotal();
   }
 
   // Render cart items
@@ -173,12 +171,8 @@ class CartManager {
 
   // Update order summary
   updateOrderSummary() {
-    const subtotal = this.getSubtotal();
+    // Total is the sum of all items in the cart
     const total = this.getTotal();
-
-    document.getElementById('subtotal').textContent = `Le ${subtotal.toLocaleString()}`;
-    document.getElementById('deliveryFee').textContent = `Le ${this.deliveryFee.toLocaleString()}`;
-    document.getElementById('serviceFee').textContent = `Le ${this.serviceFee.toLocaleString()}`;
     document.getElementById('total').textContent = `Le ${total.toLocaleString()}`;
   }
 
@@ -312,8 +306,6 @@ class CartManager {
         paymentMethod,
         items: [...this.cart],
         subtotal: this.getSubtotal(),
-        deliveryFee: this.deliveryFee,
-        serviceFee: this.serviceFee,
         total: this.getTotal(),
         orderDate: new Date().toISOString()
       });
