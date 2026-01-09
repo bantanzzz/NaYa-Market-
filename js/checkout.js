@@ -9,6 +9,7 @@ class CartManager {
     this.renderCart();
     this.updateOrderSummary();
     this.setupEventListeners();
+    this.attachCartEventListeners();
   }
 
   // Load cart from localStorage
@@ -145,13 +146,13 @@ class CartManager {
         
         <div class="flex flex-col items-end gap-2">
           <div class="flex items-center gap-2">
-            <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity - 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+            <button type="button" data-action="decrease" data-item-id="${item.id}" class="quantity-btn w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
               </svg>
             </button>
             <span class="w-8 text-center font-medium">${item.quantity}</span>
-            <button onclick="cartManager.updateQuantity('${item.id}', ${item.quantity + 1})" class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition">
+            <button type="button" data-action="increase" data-item-id="${item.id}" class="quantity-btn w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition cursor-pointer">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
               </svg>
@@ -160,7 +161,7 @@ class CartManager {
           
           <div class="text-right">
             <p class="font-semibold text-gray-800 text-sm">Le ${(item.price * item.quantity).toLocaleString()}</p>
-            <button onclick="cartManager.removeItem('${item.id}')" class="text-red-500 hover:text-red-700 text-xs mt-1">
+            <button type="button" data-action="remove" data-item-id="${item.id}" class="remove-btn text-red-500 hover:text-red-700 text-xs mt-1 cursor-pointer">
               Remove
             </button>
           </div>
@@ -214,13 +215,47 @@ class CartManager {
     }, 3000);
   }
 
+  // Attach event listeners to cart item buttons
+  attachCartEventListeners() {
+    const cartItemsContainer = document.getElementById('cartItems');
+    if (!cartItemsContainer) return;
+
+    // Use event delegation for dynamic buttons
+    cartItemsContainer.addEventListener('click', (e) => {
+      const target = e.target.closest('[data-action]');
+      if (!target) return;
+
+      const action = target.getAttribute('data-action');
+      const itemId = target.getAttribute('data-item-id');
+
+      if (!itemId) return;
+
+      const item = this.cart.find(item => item.id === itemId);
+      if (!item) return;
+
+      switch (action) {
+        case 'increase':
+          this.updateQuantity(itemId, item.quantity + 1);
+          break;
+        case 'decrease':
+          this.updateQuantity(itemId, item.quantity - 1);
+          break;
+        case 'remove':
+          this.removeItem(itemId);
+          break;
+      }
+    });
+  }
+
   // Setup event listeners
   setupEventListeners() {
     // Checkout button - automatically dials vendor payment numbers
     const checkoutBtn = document.getElementById('checkoutBtn');
-    checkoutBtn.addEventListener('click', () => {
-      this.processCheckout();
-    });
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', () => {
+        this.processCheckout();
+      });
+    }
 
     // Form validation
     const formInputs = ['customerName', 'customerPhone', 'deliveryAddress'];
@@ -472,8 +507,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set initial form validation state
   cartManager.validateForm();
   
+  // Make cart manager globally available
+  window.cartManager = cartManager;
+  
   console.log('Checkout page initialized');
 });
-
-// Make cart manager globally available
-window.cartManager = cartManager;
