@@ -269,7 +269,7 @@ function renderProducts() {
       <p class="text-gray-500 mb-1 text-sm font-semibold">Le ${product.price}</p>
       <p class="text-gray-600 text-sm mb-3 text-center hidden description">${product.description || 'No description available'}</p>
       <button class="text-green-600 text-sm font-medium mb-3 show-description hover:text-green-800 transition">Show Description</button>
-      <button onclick="addToCart('${product.id}', '${product.name}', '${product.price}', '${product.category}', '${product.location}', '${product.image}', '${product.vendorEmail || ''}', '${product.whatsapp}', '${product.paymentNumber || ''}')" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
+      <button onclick="addToCart('${product.id}', '${product.name}', '${product.price}', '${product.category}', '${product.location}', '${product.image}', '${product.vendorEmail || ''}', '${product.whatsapp}', '${product.paymentNumber || ''}', '${product.paymentProvider || 'orange'}', '${product.paymentAppLink || ''}')" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
         Add to Cart
       </button>
@@ -845,7 +845,7 @@ function openPaymentApp(paymentNumber, productPrice) {
 }
 
 // 🔸 Global add to cart function
-function addToCart(id, name, price, category, location, image, vendorEmail, whatsapp, paymentNumber) {
+function addToCart(id, name, price, category, location, image, vendorEmail, whatsapp, paymentNumber, paymentProvider, paymentAppLink) {
   const product = {
     id: id || Date.now().toString(),
     name,
@@ -855,7 +855,9 @@ function addToCart(id, name, price, category, location, image, vendorEmail, what
     image,
     vendorEmail,
     whatsapp,
-    paymentNumber
+    paymentNumber,
+    paymentProvider: paymentProvider || 'orange',
+    paymentAppLink: paymentAppLink || ''
   };
   
   // Simple cart management for vendor page
@@ -1266,7 +1268,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Create product object with Storage URL
       const paymentNumber = document.getElementById('vendorPaymentNumber').value.trim();
-      const newProduct = { name, price, category, location, whatsapp, description, image: imageURL, paymentNumber };
+      const paymentProvider = document.getElementById('vendorPaymentProvider')?.value?.trim() || 'orange';
+      const paymentAppLink = document.getElementById('vendorPaymentAppLink')?.value?.trim() || '';
+      const newProduct = { name, price, category, location, whatsapp, description, image: imageURL, paymentNumber, paymentProvider, paymentAppLink };
       
       // Save to Firebase
       const saved = await saveProductToFirebase(newProduct);

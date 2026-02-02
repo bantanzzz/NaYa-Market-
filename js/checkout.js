@@ -49,6 +49,8 @@ class CartManager {
         vendorEmail: product.vendorEmail,
         whatsapp: product.whatsapp,
         paymentNumber: product.paymentNumber,
+        paymentProvider: product.paymentProvider || 'orange',
+        paymentAppLink: product.paymentAppLink || '',
         quantity: quantity
       });
     }
@@ -348,19 +350,106 @@ class CartManager {
       vendorGroups[vendorKey].push(item);
     });
 
-    // Process each vendor's items with a slight delay between dials
-    let delay = 0;
-    for (const [vendorEmail, items] of Object.entries(vendorGroups)) {
-      const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      const paymentNumber = items[0].paymentNumber;
+    const groups = Object.entries(vendorGroups).map(([vendorEmail, items]) => ({ vendorEmail, items }));
+    if (groups.length === 0) return;
 
-      if (paymentNumber) {
-        // Delay each dial slightly to allow previous dial to initiate
-        setTimeout(() => {
-          this.openMobileMoneyDial(paymentNumber, totalAmount);
-        }, delay);
-        delay += 1000; // 1 second delay between dials
+    // Mobile browsers usually block multiple automatic navigations.
+    // We open ONLY the first vendor payment app/link from the user click.
+    if (groups.length > 1) {
+      alert('Your cart contains items from multiple vendors. We will open payment for the first vendor now. After paying, come back and pay the next vendor.');
+    }
+
+    const first = groups[0];
+    const items = first.items;
+    const totalAmount = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const paymentNumber = items[0].paymentNumber;
+    const provider = items[0].paymentProvider || 'orange';
+    const appLink = items[0].paymentAppLink || '';
+
+    if (paymentNumber) {
+      this.openMobileMoneyAppFirst(paymentNumber, totalAmount, provider, appLink);
+    }
+  }
+
+  // Try to open the mobile money app first; fall back to USSD (optional)
+  openMobileMoneyAppFirst(paymentNumber, amount, provider, paymentAppLink) {
+    // If vendor provided a payment app link/deep-link, try it first.
+    // If the app is not installed or link fails, fall back to USSD.
+    if (paymentAppLink && typeof paymentAppLink === 'string' && paymentAppLink.trim().length > 0) {
+      const appUrl = paymentAppLink.trim();
+      const fallbackUrl = this.buildUSSDTelUrl(paymentNumber, amount, provider);
+      if (fallbackUrl) {
+        this.openUrlWithFallback(appUrl, fallbackUrl, 1500);
+      } else {
+        window.location.href = appUrl;
       }
+      return;
+    }
+
+    // No app link provided → go straight to USSD
+    const fallbackUrl = this.buildUSSDTelUrl(paymentNumber, amount, provider);
+    if (fallbackUrl) {
+      this.createPhoneLink(fallbackUrl);
+    } else {
+      // Final fallback: dial the raw number
+      this.createPhoneLink(`tel:${paymentNumber}`);
+    }
+  }
+
+  // Build a tel: URL for USSD based on provider (optional fallback)
+  buildUSSDTelUrl(paymentNumber, amount, provider) {
+    let cleanNumber = (paymentNumber || '').toString().replace(/[^\d+]/g, '');
+
+    // Remove country code if present (232 for Sierra Leone)
+    if (cleanNumber.startsWith('+232')) {
+      cleanNumber = cleanNumber.substring(4);
+    } else if (cleanNumber.startsWith('232')) {
+      cleanNumber = cleanNumber.substring(3);
+    }
+
+    if (cleanNumber.length !== 8) return null;
+
+    const amt = Math.round(Number(amount) || 0);
+
+    // NOTE: Orange template matches what you were already using.
+    if (provider === 'orange') {
+      const ussdCode = `*144*2*${cleanNumber}*${amt}#`;
+      return `tel:${ussdCode}`;
+    }
+
+    // NOTE: This Afrimoney template may differ depending on the real Afrimoney menu.
+    // Keep USSD optional: vendors can provide an app link to open My Africell directly.
+    if (provider === 'africell') {
+      const ussdCode = `*161*2*${cleanNumber}*${amt}#`;
+      return `tel:${ussdCode}`;
+    }
+
+    return null;
+  }
+
+  // Open app URL, and if it doesn't open, fall back after timeout (mobile-friendly pattern)
+  openUrlWithFallback(appUrl, fallbackUrl, timeoutMs = 1500) {
+    let didHide = false;
+
+    const onVis = () => {
+      if (document.hidden) didHide = true;
+    };
+
+    document.addEventListener('visibilitychange', onVis, { passive: true });
+
+    const timer = setTimeout(() => {
+      document.removeEventListener('visibilitychange', onVis);
+      if (!didHide) {
+        window.location.href = fallbackUrl;
+      }
+    }, timeoutMs);
+
+    try {
+      window.location.href = appUrl;
+    } catch (e) {
+      clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVis);
+      window.location.href = fallbackUrl;
     }
   }
 
@@ -429,7 +518,6 @@ class CartManager {
     }
     
     // Format the USSD code for Orange Money: *144*2*vendorNumber*amount#
-    // This works for both Orange Money and most mobile money services
     const ussdCode = `*144*2*${cleanNumber}*${Math.round(amount)}#`;
     const phoneUrl = `tel:${ussdCode}`;
     
