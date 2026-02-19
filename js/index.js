@@ -80,6 +80,8 @@ class SimpleCartManager {
         vendorEmail: product.vendorEmail,
         whatsapp: product.whatsapp,
         paymentNumber: product.paymentNumber,
+        paymentProvider: product.paymentProvider || 'orange',
+        paymentAppLink: product.paymentAppLink || '',
         quantity: quantity
       });
     }
@@ -165,10 +167,16 @@ function createProductCard(product) {
     <p class="text-gray-500 mb-1 text-sm">Le ${product.price}</p>
     <p class="text-gray-600 text-sm mb-2 hidden description">${product.description || 'No description available'}</p>
     <button class="text-green-600 text-sm font-medium mb-2 show-description hover:text-green-800 transition">Show Description</button>
-    <button onclick="addToCart('${product.id}', '${product.name}', '${product.price}', '${product.category}', '${product.location}', '${product.image}', '${product.vendorEmail || ''}', '${product.whatsapp}', '${product.paymentNumber || ''}')" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-blue-600 transition shadow w-full justify-center">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
-      Add to Cart
-    </button>
+    <div class="flex items-center gap-2 w-full mt-2">
+      <label class="text-sm text-gray-600 whitespace-nowrap">Qty:</label>
+      <select class="product-qty flex-1 max-w-[4rem] border border-gray-300 rounded-lg px-2 py-2 text-sm font-medium focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        ${[1,2,3,4,5,6,7,8,9,10].map(n => `<option value="${n}">${n}</option>`).join('')}
+      </select>
+      <button onclick="var q=parseInt(this.closest('.vendor-card').querySelector('.product-qty').value,10)||1; addToCart('${(product.id || '').replace(/'/g, "\\'")}', '${(product.name || '').replace(/'/g, "\\'")}', '${product.price}', '${product.category}', '${(product.location || '').replace(/'/g, "\\'")}', '${(product.image || '').replace(/'/g, "\\'")}', '${(product.vendorEmail || '').replace(/'/g, "\\'")}', '${product.whatsapp}', '${product.paymentNumber || ''}', '${product.paymentProvider || 'orange'}', '${(product.paymentAppLink || '').replace(/'/g, "\\'")}', q)" class="flex-1 bg-blue-500 text-white px-4 py-2 rounded-full font-medium flex items-center justify-center gap-2 hover:bg-blue-600 transition shadow">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
+        Add to Cart
+      </button>
+    </div>
     <button onclick="openPaymentApp('${product.paymentNumber || ''}', '${product.price}')" class="mt-2 bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center gap-2 hover:bg-green-600 transition shadow w-full justify-center">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v5a2 2 0 01-2 2H9a2 2 0 01-2-2v-5m6-5V6a2 2 0 00-2-2H9a2 2 0 00-2 2v2" /></svg>
       Buy Now
@@ -429,8 +437,9 @@ function clearCategoryFilter() {
   }
 }
 
-// 🔸 Global add to cart function
-function addToCart(id, name, price, category, location, image, vendorEmail, whatsapp, paymentNumber) {
+// 🔸 Global add to cart function (quantity defaults to 1)
+function addToCart(id, name, price, category, location, image, vendorEmail, whatsapp, paymentNumber, paymentProvider, paymentAppLink, quantity) {
+  const qty = Math.max(1, parseInt(quantity, 10) || 1);
   const product = {
     id: id || Date.now().toString(),
     name,
@@ -440,10 +449,12 @@ function addToCart(id, name, price, category, location, image, vendorEmail, what
     image,
     vendorEmail,
     whatsapp,
-    paymentNumber
+    paymentNumber,
+    paymentProvider: paymentProvider || 'orange',
+    paymentAppLink: paymentAppLink || ''
   };
   
-  simpleCartManager.addItem(product);
+  simpleCartManager.addItem(product, qty);
 }
 
 // Make functions globally available
